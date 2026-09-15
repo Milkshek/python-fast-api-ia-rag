@@ -73,7 +73,8 @@ service devenu indisponible.
 
 Ce socle est destiné au développement local. Le frontend, le pipeline documentaire
 et les capacités IA seront ajoutés selon les étapes du programme. Les dépendances
-Python sont actuellement bornées, mais pas encore verrouillées exactement.
+Python sont verrouillées avec leurs dépendances transitives et hashes dans les
+fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 
 ## API Documents
 
@@ -107,8 +108,8 @@ La suite utilise de vraies requêtes SQL et vérifie le cycle HTTP, la validatio
 la pagination, le commit et l'annulation des transactions inachevées.
 Elle vérifie aussi l'alignement modèle/migration et un aller-retour des migrations.
 Les conteneurs de test sont retirés à la fin, même en cas d'échec.
-La version actuelle du client de test émet deux avertissements de dépréciation
-dans Starlette (compatibilité httpx et alias AnyIO) ; les tests passent.
+Pytest traite les avertissements comme des erreurs. Les contraintes temporaires
+de compatibilité sont expliquées dans requirements.in et le guide J3.
 Ne pas lancer deux `make test` en parallèle : ils partagent le même projet de test.
 
 Les fixtures refusent de nettoyer une base autre que `document_intelligence_test`
@@ -132,3 +133,26 @@ Pourquoi attendre un service sain plutôt que simplement un conteneur démarré 
 
 Références : [Docker avec FastAPI](https://fastapi.tiangolo.com/deployment/docker/)
 et [image officielle PostgreSQL](https://hub.docker.com/_/postgres).
+
+## Qualité et dépendances
+
+```sh
+make format        # Formater et trier les imports
+make lint          # Contrôler le lint et le format
+make typecheck     # Mypy strict sur app/
+make quality       # Lint + types + tests
+make lock          # Résoudre après modification des .in
+make lock LOCK_ARGS=--upgrade # Actualiser les versions compatibles
+```
+
+Ces commandes utilisent Docker ; les outils n'ont pas besoin d'être installés
+sur la machine hôte. Les fichiers `.in` décrivent les dépendances directes et
+les `.txt` sont générés par pip-tools. Versionner les deux après validation.
+Le lock de développement est contraint par celui du runtime.
+
+Après modification des dépendances : `make lock`, `make quality`, puis `make up`.
+Les contrôles statiques ne nécessitent pas de base de données. `make check` reste
+la validation de Compose ; `make quality` contrôle le code et son comportement.
+
+Voir [le guide J3](docs/learning/02-tooling.md) pour les limites, la maintenance des
+contraintes de compatibilité et les comparaisons PHP/TypeScript.
