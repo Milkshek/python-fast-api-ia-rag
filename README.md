@@ -78,12 +78,13 @@ fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 
 ## API Documents
 
-Cette première étape gère uniquement les **métadonnées** ; elle ne transfère pas
-encore les fichiers PDF et ne propose pas encore d'authentification.
+L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte,
+l’indexation et l’authentification ne sont pas encore implémentées.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
-| POST | `/documents` | Créer, HTTP 201 et en-tête Location |
+| POST | `/documents` | Créer les métadonnées, HTTP 201 et Location |
+| POST | `/documents/upload` | Importer un PDF en multipart, HTTP 201 et Location |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
 | GET | `/documents/{id}` | Consulter, HTTP 200 ou 404 |
 | DELETE | `/documents/{id}` | Supprimer, HTTP 204 ou 404 |
@@ -156,3 +157,30 @@ la validation de Compose ; `make quality` contrôle le code et son comportement.
 
 Voir [le guide J3](docs/learning/02-tooling.md) pour les limites, la maintenance des
 contraintes de compatibilité et les comparaisons PHP/TypeScript.
+
+## Importer un PDF
+
+```sh
+make up
+curl --fail http://localhost:8000/documents/upload \
+  -F 'title=Contrat de démonstration' \
+  -F 'file=@/chemin/vers/contrat.pdf;type=application/pdf'
+```
+
+Remplacer le chemin par un PDF local. Le formulaire est aussi disponible dans
+Swagger. Limite : **10 Mio par fichier**. La réponse fournit `status=UPLOADED`
+et `size_bytes`. Les créations JSON et anciennes lignes sont `METADATA_ONLY`.
+
+Fichier vide : 400 ; extension/signature non PDF : 415 ; taille excessive : 413 ;
+métadonnées invalides : 422 ; stockage indisponible : 503. L’en-tête `%PDF-` est
+vérifié ; la validité structurelle du PDF sera contrôlée à l’étape d’extraction.
+La taille est contrôlée après parsing multipart, pas avant réception réseau.
+
+Les fichiers sont nommés `UUID.pdf` dans `/data/documents`, persisté par le volume
+`document_files`. Le nom original n’est jamais utilisé comme chemin serveur.
+Une suppression interrompue reste `DELETING` et peut être relancée avec DELETE.
+Un crash pendant l’upload peut laisser un fichier orphelin : les limites de cette
+coordination SQL/disque sont détaillées dans [le guide J4](docs/learning/03-upload.md).
+
+`docker compose down` conserve base et fichiers. `docker compose down --volumes`
+**supprime les deux**. Les tests utilisent uniquement des répertoires temporaires.
