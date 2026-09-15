@@ -1,6 +1,7 @@
 *
 !requirements.txt
 !requirements-dev.txt
+!pyproject.toml
 !tests/
 !tests/**
 !alembic.ini

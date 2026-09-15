@@ -3,7 +3,6 @@ from alembic import context
 from app.database.session import Base, engine
 from app.documents.models import Document  # noqa: F401 — enregistre la table
 
-
 if context.is_offline_mode():
     context.configure(
         url=engine.url,

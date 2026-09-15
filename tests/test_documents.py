@@ -68,7 +68,9 @@ def test_pagination_has_stable_order():
     with TestClient(app) as client:
         assert client.get("/documents").json() == []
         documents = [
-            client.post("/documents", json={"title": str(i), "filename": "a.pdf"}).json()
+            client.post(
+                "/documents", json={"title": str(i), "filename": "a.pdf"}
+            ).json()
             for i in range(3)
         ]
         assert client.get("/documents?limit=2").json() == documents[:2]
@@ -78,7 +80,9 @@ def test_pagination_has_stable_order():
 
 def test_creation_commits_to_postgres():
     with TestClient(app) as client:
-        response = client.post("/documents", json={"title": "Persisté", "filename": "a.pdf"})
+        response = client.post(
+            "/documents", json={"title": "Persisté", "filename": "a.pdf"}
+        )
         assert response.status_code == 201
         identifier = UUID(response.json()["id"])
     # Une nouvelle session SQL prouve que l'écriture ne vit pas seulement dans la requête.

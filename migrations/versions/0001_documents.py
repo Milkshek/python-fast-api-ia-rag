@@ -1,7 +1,7 @@
 """Créer la table des métadonnées documentaires."""
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = "0001_documents"
 down_revision = None
@@ -16,7 +16,10 @@ def upgrade() -> None:
         sa.Column("title", sa.String(200), nullable=False),
         sa.Column("filename", sa.String(255), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
     )

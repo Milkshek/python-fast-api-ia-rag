@@ -25,7 +25,7 @@ engine = create_engine(database_url(), pool_pre_ping=True)
 SessionFactory = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-def get_session() -> Generator[Session, None, None]:
+def get_session() -> Generator[Session]:
     """Une session par requête ; close annule toute transaction non validée."""
     with SessionFactory() as session:
         yield session

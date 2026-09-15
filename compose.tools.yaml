@@ -1,0 +1,14 @@
+name: document-intelligence-tools
+
+services:
+  tools:
+    build:
+      context: .
+      target: test
+    working_dir: /workspace
+    environment:
+      PIP_TOOLS_CACHE_DIR: /tmp/pip-tools
+      MYPY_CACHE_DIR: /tmp/mypy
+      RUFF_CACHE_DIR: /tmp/ruff
+    volumes:
+      - .:/workspace

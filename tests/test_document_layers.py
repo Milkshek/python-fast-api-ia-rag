@@ -3,10 +3,10 @@ from uuid import uuid4
 import pytest
 
 from app.database.session import SessionFactory
+from app.documents.exceptions import DocumentNotFound
 from app.documents.models import Document
 from app.documents.repository import DocumentRepository
 from app.documents.service import DocumentService
-from app.documents.exceptions import DocumentNotFound
 
 
 def test_repository_does_not_commit():

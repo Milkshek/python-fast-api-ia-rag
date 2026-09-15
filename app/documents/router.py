@@ -3,6 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+
 from app.documents.dependencies import get_document_service
 from app.documents.exceptions import DocumentNotFound
 from app.documents.models import Document

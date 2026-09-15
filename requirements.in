@@ -1,0 +1,9 @@
+fastapi>=0.115,<1.0
+uvicorn>=0.34,<1.0
+sqlalchemy>=2.0,<2.1
+psycopg[binary]>=3.2,<4
+alembic>=1.16,<2
+pydantic>=2.9,<3
+# Starlette 1.6 utilise encore BlockingPortal via un alias déprécié en AnyIO 4.15.
+# Retirer cette borne après correction de Starlette et vérification avec pytest -W error.
+anyio>=4,<4.15
