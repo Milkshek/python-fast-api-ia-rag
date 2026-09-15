@@ -673,6 +673,12 @@ pytest==9.1.1 \
     --hash=sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313 \
     --hash=sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c
     # via -r requirements-dev.in
+python-multipart==0.0.32 \
+    --hash=sha256:be54b7f3fa167bb83e4fcd936b887b708f4e57fe75911c02aebf53efaf8d938e \
+    --hash=sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
 ruff==0.16.7 \
     --hash=sha256:06d0e93d04f392996435ebd600c153f65b47d73fbec2415aa99c5ee5756b3a5f \
     --hash=sha256:142151a5e7b93c1b11111337142f89dd2fbfee92161225c99a97222f22e32656 \

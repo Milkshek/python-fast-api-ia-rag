@@ -15,3 +15,8 @@ def clean_test_database():
     yield
     with SessionFactory.begin() as session:
         session.execute(delete(Document))
+
+
+@pytest.fixture(autouse=True)
+def isolated_document_storage(tmp_path, monkeypatch):
+    monkeypatch.setenv("DOCUMENT_STORAGE_PATH", str(tmp_path / "documents"))

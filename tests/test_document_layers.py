@@ -7,6 +7,7 @@ from app.documents.exceptions import DocumentNotFound
 from app.documents.models import Document
 from app.documents.repository import DocumentRepository
 from app.documents.service import DocumentService
+from app.documents.storage import LocalDocumentStorage
 
 
 def test_repository_does_not_commit():
@@ -21,9 +22,9 @@ def test_repository_does_not_commit():
         session.rollback()
 
 
-def test_service_commits_without_http():
+def test_service_commits_without_http(tmp_path):
     with SessionFactory() as session:
-        service = DocumentService(session)
+        service = DocumentService(session, LocalDocumentStorage(tmp_path))
         document = service.create(title="Persisté", filename="a.pdf")
         with SessionFactory() as observer:
             stored = observer.get(Document, document.id)
@@ -35,9 +36,9 @@ def test_service_commits_without_http():
             assert observer.get(Document, document.id) is None
 
 
-def test_service_missing_document_leaves_session_usable():
+def test_service_missing_document_leaves_session_usable(tmp_path):
     with SessionFactory() as session:
-        service = DocumentService(session)
+        service = DocumentService(session, LocalDocumentStorage(tmp_path))
         with pytest.raises(DocumentNotFound):
             service.delete(uuid4())
         assert not session.in_transaction()

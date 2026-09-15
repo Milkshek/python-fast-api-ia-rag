@@ -11,6 +11,7 @@ services:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     environment:
       PGHOST: db
+      DOCUMENT_STORAGE_PATH: /data/documents
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-document_intelligence}
       PGUSER: ${POSTGRES_USER:-document_intelligence}
@@ -19,6 +20,7 @@ services:
       - ./app:/workspace/app:ro
       - ./alembic.ini:/workspace/alembic.ini:ro
       - ./migrations:/workspace/migrations:ro
+      - document_files:/data/documents
     depends_on:
       db:
         condition: service_healthy
@@ -48,3 +50,4 @@ services:
 
 volumes:
   postgres_data:
+  document_files:

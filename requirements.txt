@@ -403,6 +403,10 @@ pydantic-core==2.46.5 \
     --hash=sha256:fc8515076c11f3cfdf4fb142dcca0fe384b1230a3b5415458ac84f3e0903ec13 \
     --hash=sha256:ff218293c9c806138dca139765e3b067621be52bcd93cdc14c7711be7ddc90a9
     # via pydantic
+python-multipart==0.0.32 \
+    --hash=sha256:be54b7f3fa167bb83e4fcd936b887b708f4e57fe75911c02aebf53efaf8d938e \
+    --hash=sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23
+    # via -r requirements.in
 sqlalchemy==2.0.53 \
     --hash=sha256:03dfba40d1de2da62370d5e85ba13ffb8e75f16e8af9e93170a9cf4f394636a5 \
     --hash=sha256:0417dac5a5bbc7bff3fd95f53ff193c0fdcbdde4b3119ca2f46651190e65144c \

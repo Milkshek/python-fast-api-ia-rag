@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.documents.status import DocumentStatus
+
 
 class DocumentCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
@@ -18,3 +20,5 @@ class DocumentRead(BaseModel):
     title: str
     filename: str
     created_at: datetime
+    status: DocumentStatus
+    size_bytes: int | None

@@ -19,6 +19,14 @@ class DocumentRepository:
     def get(self, document_id: UUID) -> Document | None:
         return self._session.get(Document, document_id)
 
+    def get_for_update(self, document_id: UUID) -> Document | None:
+        return self._session.scalar(
+            select(Document)
+            .where(Document.id == document_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+
     def list(self, *, limit: int, offset: int) -> Sequence[Document]:
         statement = (
             select(Document)

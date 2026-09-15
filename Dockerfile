@@ -8,7 +8,9 @@ WORKDIR /workspace
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --require-hashes -r requirements.txt \
-    && useradd --create-home --uid 10001 appuser
+    && useradd --create-home --uid 10001 appuser \
+    && mkdir -p /data/documents \
+    && chown appuser:appuser /data/documents
 
 COPY --chown=appuser:appuser app ./app
 COPY --chown=appuser:appuser alembic.ini .
