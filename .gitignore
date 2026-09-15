@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# Plans de travail locaux
+**/plans/**/*.md
+LEARNING_NOTES.md
