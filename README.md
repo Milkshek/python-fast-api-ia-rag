@@ -78,13 +78,15 @@ fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 
 ## API Documents
 
-L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte,
-l’indexation et l’authentification ne sont pas encore implémentées.
+L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
+L’indexation et l’authentification ne sont pas encore implémentées.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
 | POST | `/documents` | Créer les métadonnées, HTTP 201 et Location |
 | POST | `/documents/upload` | Importer un PDF en multipart, HTTP 201 et Location |
+| POST | `/documents/{id}/extract` | Extraire le texte, HTTP 200 |
+| GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
 | GET | `/documents/{id}` | Consulter, HTTP 200 ou 404 |
 | DELETE | `/documents/{id}` | Supprimer, HTTP 204 ou 404 |
@@ -173,7 +175,7 @@ et `size_bytes`. Les créations JSON et anciennes lignes sont `METADATA_ONLY`.
 
 Fichier vide : 400 ; extension/signature non PDF : 415 ; taille excessive : 413 ;
 métadonnées invalides : 422 ; stockage indisponible : 503. L’en-tête `%PDF-` est
-vérifié ; la validité structurelle du PDF sera contrôlée à l’étape d’extraction.
+vérifié à l’upload ; le parsing strict est effectué à l’étape d’extraction.
 La taille est contrôlée après parsing multipart, pas avant réception réseau.
 
 Les fichiers sont nommés `UUID.pdf` dans `/data/documents`, persisté par le volume
@@ -184,3 +186,27 @@ coordination SQL/disque sont détaillées dans [le guide J4](docs/learning/03-up
 
 `docker compose down` conserve base et fichiers. `docker compose down --volumes`
 **supprime les deux**. Les tests utilisent uniquement des répertoires temporaires.
+
+
+## Extraire le texte d'un PDF
+
+Après l'upload, utiliser l'UUID retourné :
+
+```sh
+curl --fail -X POST http://localhost:8000/documents/UUID/extract
+curl --fail 'http://localhost:8000/documents/UUID/pages?limit=20&offset=0'
+```
+
+La requête attend l'extraction. Le statut devient `EXTRACTED`, puis les pages
+numérotées à partir de 1 sont consultables. Une relance réussie ne duplique pas les
+pages ; supprimer le document supprime également ses pages en base.
+
+Un PDF illisible, chiffré, sans texte extractible ou dépassant les limites de
+traitement retourne 422 avec un code d'erreur, mémorisé dans `extraction_error`
+et le statut `FAILED`. Une relance est possible. Limites actuelles : 200 pages et
+2 millions de caractères normalisés. Elles ne bornent pas la mémoire du parseur.
+Pas d'OCR, de traitement en arrière-plan ni d'indexation à cette étape.
+Les PDF locaux de confiance avec texte constituent le périmètre de démonstration.
+
+Voir [le guide J5](docs/learning/04-extraction.md) pour les transactions, la
+normalisation, les limites de mise en page et les questions de compréhension.
