@@ -30,7 +30,8 @@ n'est ni une entité SQLAlchemy ni un modèle HTTP Pydantic.
 
 Une première transaction lit le document et vérifie son état. METADATA_ONLY et
 DELETING sont incompatibles avec l'extraction. Si EXTRACTED, on retourne le résultat
-existant : il ne s'agit pas d'une commande de réextraction forcée.
+existant : il ne s’agit pas d’une commande de réextraction forcée. Depuis J6,
+CHUNKED conserve également les résultats existants, sans modifier les chunks.
 
 Le fichier est ensuite ouvert et parsé **hors transaction SQL**. Une deuxième
 transaction verrouille la ligne, vérifie à nouveau son existence et son état,

@@ -86,6 +86,8 @@ L’indexation et l’authentification ne sont pas encore implémentées.
 | POST | `/documents` | Créer les métadonnées, HTTP 201 et Location |
 | POST | `/documents/upload` | Importer un PDF en multipart, HTTP 201 et Location |
 | POST | `/documents/{id}/extract` | Extraire le texte, HTTP 200 |
+| POST | `/documents/{id}/chunk` | Découper le texte extrait, HTTP 200 |
+| GET | `/documents/{id}/chunks?limit=20&offset=0` | Lire les chunks et leurs positions |
 | GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
 | GET | `/documents/{id}` | Consulter, HTTP 200 ou 404 |
@@ -210,3 +212,17 @@ Les PDF locaux de confiance avec texte constituent le périmètre de démonstrat
 
 Voir [le guide J5](docs/learning/04-extraction.md) pour les transactions, la
 normalisation, les limites de mise en page et les questions de compréhension.
+
+
+## Découper en passages
+
+Après extraction, appeler `POST /documents/{id}/chunk`, puis consulter
+`GET /documents/{id}/chunks?limit=20&offset=0`. Le statut devient `CHUNKED`.
+Le découpage utilise 1000 caractères avec 200 de recouvrement, page par page.
+Chaque passage conserve un UUID, son ordre, sa page et ses offsets dans le texte
+normalisé. Une relance conserve le résultat existant ; supprimer le document
+supprime aussi ses chunks. Un document non extrait retourne 409.
+
+Ce découpage simple peut couper les phrases et ne constitue pas encore une
+indexation vectorielle. Voir [le guide J6](docs/learning/05-chunking.md) pour
+l'algorithme, les limites et les garanties transactionnelles.
