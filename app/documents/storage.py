@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import BinaryIO
 from uuid import UUID
@@ -39,6 +41,14 @@ class LocalDocumentStorage:
                 temporary.unlink(missing_ok=True)
             except OSError:
                 logger.exception("Unable to clean partial upload %s", document_id)
+
+    @contextmanager
+    def open(self, document_id: UUID) -> Iterator[BinaryIO]:
+        try:
+            with self._path(document_id).open("rb") as source:
+                yield source
+        except OSError as error:
+            raise DocumentStorageUnavailable from error
 
     def delete(self, document_id: UUID) -> None:
         try:

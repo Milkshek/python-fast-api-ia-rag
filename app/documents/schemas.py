@@ -22,3 +22,12 @@ class DocumentRead(BaseModel):
     created_at: datetime
     status: DocumentStatus
     size_bytes: int | None
+    extraction_error: str | None
+
+
+class DocumentPageRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    document_id: UUID
+    page_number: int
+    text: str

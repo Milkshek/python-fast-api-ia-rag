@@ -8,3 +8,5 @@ python-multipart>=0.0.20,<1
 # Starlette 1.6 utilise encore BlockingPortal via un alias déprécié en AnyIO 4.15.
 # Retirer cette borne après correction de Starlette et vérification avec pytest -W error.
 anyio>=4,<4.15
+
+pypdf>=6.19,<7

@@ -1,10 +1,10 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.documents.models import Document
+from app.documents.models import Document, DocumentPage
 
 
 class DocumentRepository:
@@ -38,3 +38,20 @@ class DocumentRepository:
 
     def delete(self, document: Document) -> None:
         self._session.delete(document)
+
+    def replace_pages(self, document_id: UUID, pages: Sequence[DocumentPage]) -> None:
+        self._session.execute(
+            delete(DocumentPage).where(DocumentPage.document_id == document_id)
+        )
+        self._session.add_all(pages)
+
+    def list_pages(
+        self, document_id: UUID, *, limit: int, offset: int
+    ) -> Sequence[DocumentPage]:
+        return self._session.scalars(
+            select(DocumentPage)
+            .where(DocumentPage.document_id == document_id)
+            .order_by(DocumentPage.page_number)
+            .offset(offset)
+            .limit(limit)
+        ).all()

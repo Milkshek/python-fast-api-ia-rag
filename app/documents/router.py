@@ -16,16 +16,22 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
-from app.documents.dependencies import get_document_service
+from app.documents.dependencies import (
+    get_document_extraction_service,
+    get_document_service,
+)
 from app.documents.exceptions import (
+    DocumentExtractionConflict,
+    DocumentExtractionFailed,
     DocumentNotFound,
     DocumentStorageUnavailable,
     DocumentTooLarge,
     EmptyDocumentFile,
     UnsupportedDocumentFile,
 )
-from app.documents.models import Document
-from app.documents.schemas import DocumentCreate, DocumentRead
+from app.documents.extraction_service import DocumentExtractionService
+from app.documents.models import Document, DocumentPage
+from app.documents.schemas import DocumentCreate, DocumentPageRead, DocumentRead
 from app.documents.service import DocumentService
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -102,3 +108,37 @@ def delete_document(document_id: UUID, service: ServiceDependency) -> Response:
             status_code=503, detail="Stockage indisponible ; réessayer la suppression"
         ) from error
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+ExtractionDependency = Annotated[
+    DocumentExtractionService, Depends(get_document_extraction_service)
+]
+
+
+@router.post("/{document_id}/extract", response_model=DocumentRead)
+def extract_document(document_id: UUID, service: ExtractionDependency) -> Document:
+    try:
+        return service.extract(document_id)
+    except DocumentNotFound as error:
+        raise HTTPException(status_code=404, detail="Document introuvable") from error
+    except DocumentExtractionConflict as error:
+        raise HTTPException(
+            status_code=409, detail="Ce document ne peut pas être extrait"
+        ) from error
+    except DocumentExtractionFailed as error:
+        raise HTTPException(status_code=422, detail={"code": error.code}) from error
+    except DocumentStorageUnavailable as error:
+        raise HTTPException(status_code=503, detail="Stockage indisponible") from error
+
+
+@router.get("/{document_id}/pages", response_model=list[DocumentPageRead])
+def list_document_pages(
+    document_id: UUID,
+    service: ExtractionDependency,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> Sequence[DocumentPage]:
+    try:
+        return service.list_pages(document_id, limit=limit, offset=offset)
+    except DocumentNotFound as error:
+        raise HTTPException(status_code=404, detail="Document introuvable") from error

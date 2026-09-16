@@ -21,3 +21,13 @@ class DocumentTooLarge(Exception):
 
 class DocumentStorageUnavailable(Exception):
     pass
+
+
+class DocumentExtractionConflict(Exception):
+    pass
+
+
+class DocumentExtractionFailed(Exception):
+    def __init__(self, code: str) -> None:
+        self.code = code
+        super().__init__(code)
