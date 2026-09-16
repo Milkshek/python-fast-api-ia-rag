@@ -33,7 +33,7 @@ class DocumentExtractionService:
         with self._session.begin():
             document = self._require_document(document_id)
             self._ensure_extractable(document)
-            if document.status == DocumentStatus.EXTRACTED:
+            if document.status in (DocumentStatus.EXTRACTED, DocumentStatus.CHUNKED):
                 return document
         try:
             with self._storage.open(document_id) as source:
@@ -44,7 +44,10 @@ class DocumentExtractionService:
         with self._session.begin():
             document = self._require_document(document_id, lock=True)
             self._ensure_extractable(document)
-            if document.status != DocumentStatus.EXTRACTED:
+            if document.status not in (
+                DocumentStatus.EXTRACTED,
+                DocumentStatus.CHUNKED,
+            ):
                 self._repository.replace_pages(
                     document_id,
                     [
@@ -72,7 +75,10 @@ class DocumentExtractionService:
             document = self._require_document(document_id, lock=True)
             self._ensure_extractable(document)
             # Une autre requête a pu publier des pages pendant notre parsing.
-            if document.status != DocumentStatus.EXTRACTED:
+            if document.status not in (
+                DocumentStatus.EXTRACTED,
+                DocumentStatus.CHUNKED,
+            ):
                 document.status = DocumentStatus.FAILED
                 document.extraction_error = code
 

@@ -1,7 +1,17 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.session import Base
@@ -44,4 +54,33 @@ class DocumentPage(Base):
         ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
     )
     page_number: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column(Text())
+
+
+class DocumentChunk(Base):
+    __tablename__ = "document_chunks"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["document_id", "page_number"],
+            ["document_pages.document_id", "document_pages.page_number"],
+            ondelete="CASCADE",
+        ),
+        UniqueConstraint("document_id", "chunk_index", name="document_chunks_order"),
+        CheckConstraint("chunk_index > 0", name="document_chunks_positive_index"),
+        CheckConstraint(
+            "start_offset >= 0 AND end_offset > start_offset",
+            name="document_chunks_offsets",
+        ),
+        CheckConstraint(
+            "char_length(text) = end_offset - start_offset",
+            name="document_chunks_text_length",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    document_id: Mapped[UUID]
+    chunk_index: Mapped[int]
+    page_number: Mapped[int]
+    start_offset: Mapped[int]
+    end_offset: Mapped[int]
     text: Mapped[str] = mapped_column(Text())

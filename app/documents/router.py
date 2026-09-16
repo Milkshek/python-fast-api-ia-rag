@@ -16,11 +16,14 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
+from app.documents.chunking_service import DocumentChunkingService
 from app.documents.dependencies import (
+    get_document_chunking_service,
     get_document_extraction_service,
     get_document_service,
 )
 from app.documents.exceptions import (
+    DocumentChunkingConflict,
     DocumentExtractionConflict,
     DocumentExtractionFailed,
     DocumentNotFound,
@@ -30,8 +33,13 @@ from app.documents.exceptions import (
     UnsupportedDocumentFile,
 )
 from app.documents.extraction_service import DocumentExtractionService
-from app.documents.models import Document, DocumentPage
-from app.documents.schemas import DocumentCreate, DocumentPageRead, DocumentRead
+from app.documents.models import Document, DocumentChunk, DocumentPage
+from app.documents.schemas import (
+    DocumentChunkRead,
+    DocumentCreate,
+    DocumentPageRead,
+    DocumentRead,
+)
 from app.documents.service import DocumentService
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -140,5 +148,35 @@ def list_document_pages(
 ) -> Sequence[DocumentPage]:
     try:
         return service.list_pages(document_id, limit=limit, offset=offset)
+    except DocumentNotFound as error:
+        raise HTTPException(status_code=404, detail="Document introuvable") from error
+
+
+ChunkingDependency = Annotated[
+    DocumentChunkingService, Depends(get_document_chunking_service)
+]
+
+
+@router.post("/{document_id}/chunk", response_model=DocumentRead)
+def chunk_document(document_id: UUID, service: ChunkingDependency) -> Document:
+    try:
+        return service.chunk(document_id)
+    except DocumentNotFound as error:
+        raise HTTPException(status_code=404, detail="Document introuvable") from error
+    except DocumentChunkingConflict as error:
+        raise HTTPException(
+            status_code=409, detail="Du texte extrait est requis pour le découpage"
+        ) from error
+
+
+@router.get("/{document_id}/chunks", response_model=list[DocumentChunkRead])
+def list_document_chunks(
+    document_id: UUID,
+    service: ChunkingDependency,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> Sequence[DocumentChunk]:
+    try:
+        return service.list_chunks(document_id, limit=limit, offset=offset)
     except DocumentNotFound as error:
         raise HTTPException(status_code=404, detail="Document introuvable") from error

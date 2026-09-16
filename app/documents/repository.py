@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.documents.models import Document, DocumentPage
+from app.documents.models import Document, DocumentChunk, DocumentPage
 
 
 class DocumentRepository:
@@ -52,6 +52,27 @@ class DocumentRepository:
             select(DocumentPage)
             .where(DocumentPage.document_id == document_id)
             .order_by(DocumentPage.page_number)
+            .offset(offset)
+            .limit(limit)
+        ).all()
+
+    def all_pages(self, document_id: UUID) -> Sequence[DocumentPage]:
+        return self._session.scalars(
+            select(DocumentPage)
+            .where(DocumentPage.document_id == document_id)
+            .order_by(DocumentPage.page_number)
+        ).all()
+
+    def add_chunks(self, chunks: Sequence[DocumentChunk]) -> None:
+        self._session.add_all(chunks)
+
+    def list_chunks(
+        self, document_id: UUID, *, limit: int, offset: int
+    ) -> Sequence[DocumentChunk]:
+        return self._session.scalars(
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id == document_id)
+            .order_by(DocumentChunk.chunk_index)
             .offset(offset)
             .limit(limit)
         ).all()

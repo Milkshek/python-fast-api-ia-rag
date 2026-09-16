@@ -6,6 +6,8 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.database.session import get_session
+from app.documents.chunking import TextChunker
+from app.documents.chunking_service import DocumentChunkingService
 from app.documents.extraction import PdfTextExtractor
 from app.documents.extraction_service import DocumentExtractionService
 from app.documents.service import DocumentService
@@ -30,3 +32,9 @@ def get_document_extraction_service(
     storage: Annotated[LocalDocumentStorage, Depends(get_document_storage)],
 ) -> DocumentExtractionService:
     return DocumentExtractionService(session, storage, PdfTextExtractor())
+
+
+def get_document_chunking_service(
+    session: Annotated[Session, Depends(get_session)],
+) -> DocumentChunkingService:
+    return DocumentChunkingService(session, TextChunker())
