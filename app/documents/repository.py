@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.documents.models import Document, DocumentChunk, DocumentPage
+from app.documents.models import ChunkEmbedding, Document, DocumentChunk, DocumentPage
 
 
 class DocumentRepository:
@@ -76,3 +76,24 @@ class DocumentRepository:
             .offset(offset)
             .limit(limit)
         ).all()
+
+    def all_chunks(self, document_id: UUID) -> Sequence[DocumentChunk]:
+        return self._session.scalars(
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id == document_id)
+            .order_by(DocumentChunk.chunk_index)
+        ).all()
+
+    def replace_embeddings(
+        self, document_id: UUID, embeddings: Sequence[ChunkEmbedding]
+    ) -> None:
+        self._session.execute(
+            delete(ChunkEmbedding).where(
+                ChunkEmbedding.chunk_id.in_(
+                    select(DocumentChunk.id).where(
+                        DocumentChunk.document_id == document_id
+                    )
+                )
+            )
+        )
+        self._session.add_all(embeddings)

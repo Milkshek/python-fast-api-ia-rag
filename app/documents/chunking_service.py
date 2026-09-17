@@ -22,7 +22,7 @@ class DocumentChunkingService:
         with self._session.begin():
             document = self._require_document(document_id)
             self._ensure_chunkable(document)
-            if document.status == DocumentStatus.CHUNKED:
+            if document.status in (DocumentStatus.CHUNKED, DocumentStatus.INDEXED):
                 return document
             pages = self._repository.all_pages(document_id)
         chunks = self._build_chunks(document_id, pages)
@@ -61,7 +61,7 @@ class DocumentChunkingService:
         with self._session.begin():
             document = self._require_document(document_id, lock=True)
             self._ensure_chunkable(document)
-            if document.status != DocumentStatus.CHUNKED:
+            if document.status not in (DocumentStatus.CHUNKED, DocumentStatus.INDEXED):
                 self._repository.add_chunks(chunks)
                 document.status = DocumentStatus.CHUNKED
         return document
@@ -77,5 +77,9 @@ class DocumentChunkingService:
         return document
 
     def _ensure_chunkable(self, document: Document) -> None:
-        if document.status not in (DocumentStatus.EXTRACTED, DocumentStatus.CHUNKED):
+        if document.status not in (
+            DocumentStatus.EXTRACTED,
+            DocumentStatus.CHUNKED,
+            DocumentStatus.INDEXED,
+        ):
             raise DocumentChunkingConflict

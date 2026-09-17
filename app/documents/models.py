@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
@@ -37,6 +38,9 @@ class Document(Base):
         default=DocumentStatus.METADATA_ONLY,
         server_default=DocumentStatus.METADATA_ONLY.value,
     )
+    embedding_generation: Mapped[UUID | None]
+    embedding_model: Mapped[str | None] = mapped_column(String(100))
+    embedding_dimensions: Mapped[int | None]
     extraction_error: Mapped[str | None] = mapped_column(String(40))
     size_bytes: Mapped[int | None]
     created_at: Mapped[datetime] = mapped_column(
@@ -84,3 +88,12 @@ class DocumentChunk(Base):
     start_offset: Mapped[int]
     end_offset: Mapped[int]
     text: Mapped[str] = mapped_column(Text())
+
+
+class ChunkEmbedding(Base):
+    __tablename__ = "chunk_embeddings"
+
+    chunk_id: Mapped[UUID] = mapped_column(
+        ForeignKey("document_chunks.id", ondelete="CASCADE"), primary_key=True
+    )
+    vector: Mapped[list[float]] = mapped_column(Vector(768))

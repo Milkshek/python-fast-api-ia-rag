@@ -6,5 +6,6 @@ class DocumentStatus(StrEnum):
     UPLOADED = "UPLOADED"
     EXTRACTED = "EXTRACTED"
     CHUNKED = "CHUNKED"
+    INDEXED = "INDEXED"
     FAILED = "FAILED"
     DELETING = "DELETING"

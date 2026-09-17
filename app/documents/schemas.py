@@ -23,6 +23,8 @@ class DocumentRead(BaseModel):
     status: DocumentStatus
     size_bytes: int | None
     extraction_error: str | None
+    embedding_model: str | None
+    embedding_dimensions: int | None
 
 
 class DocumentPageRead(BaseModel):

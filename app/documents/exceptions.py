@@ -35,3 +35,7 @@ class DocumentExtractionFailed(Exception):
 
 class DocumentChunkingConflict(Exception):
     pass
+
+
+class DocumentIndexingConflict(Exception):
+    pass

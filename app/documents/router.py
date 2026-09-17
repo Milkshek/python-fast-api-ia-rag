@@ -16,16 +16,24 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
+from app.ai.embeddings import (
+    EmbeddingLimitExceeded,
+    EmbeddingQuotaExceeded,
+    EmbeddingUnavailable,
+    InvalidEmbeddingResponse,
+)
 from app.documents.chunking_service import DocumentChunkingService
 from app.documents.dependencies import (
     get_document_chunking_service,
     get_document_extraction_service,
+    get_document_indexing_service,
     get_document_service,
 )
 from app.documents.exceptions import (
     DocumentChunkingConflict,
     DocumentExtractionConflict,
     DocumentExtractionFailed,
+    DocumentIndexingConflict,
     DocumentNotFound,
     DocumentStorageUnavailable,
     DocumentTooLarge,
@@ -33,6 +41,7 @@ from app.documents.exceptions import (
     UnsupportedDocumentFile,
 )
 from app.documents.extraction_service import DocumentExtractionService
+from app.documents.indexing_service import DocumentIndexingService
 from app.documents.models import Document, DocumentChunk, DocumentPage
 from app.documents.schemas import (
     DocumentChunkRead,
@@ -180,3 +189,40 @@ def list_document_chunks(
         return service.list_chunks(document_id, limit=limit, offset=offset)
     except DocumentNotFound as error:
         raise HTTPException(status_code=404, detail="Document introuvable") from error
+
+
+IndexingDependency = Annotated[
+    DocumentIndexingService, Depends(get_document_indexing_service)
+]
+
+
+@router.post("/{document_id}/index", response_model=DocumentRead)
+def index_document(
+    document_id: UUID,
+    service: IndexingDependency,
+    force: bool = False,
+) -> Document:
+    try:
+        return service.index(document_id, force=force)
+    except DocumentNotFound as error:
+        raise HTTPException(status_code=404, detail="Document introuvable") from error
+    except DocumentIndexingConflict as error:
+        raise HTTPException(
+            status_code=409, detail="État incompatible ou indexation concurrente"
+        ) from error
+    except EmbeddingQuotaExceeded as error:
+        raise HTTPException(
+            status_code=429, detail="Quota Gemini atteint ; réessayer plus tard"
+        ) from error
+    except EmbeddingUnavailable as error:
+        raise HTTPException(
+            status_code=503, detail="Gemini indisponible ou configuration manquante"
+        ) from error
+    except InvalidEmbeddingResponse as error:
+        raise HTTPException(
+            status_code=502, detail="Réponse d'embedding invalide"
+        ) from error
+    except EmbeddingLimitExceeded as error:
+        raise HTTPException(
+            status_code=413, detail="Maximum 100 chunks par indexation locale"
+        ) from error

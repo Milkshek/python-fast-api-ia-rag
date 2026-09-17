@@ -1,15 +1,19 @@
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Annotated
 
+import httpx2 as httpx
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.ai.embeddings import GeminiEmbeddingClient
 from app.database.session import get_session
 from app.documents.chunking import TextChunker
 from app.documents.chunking_service import DocumentChunkingService
 from app.documents.extraction import PdfTextExtractor
 from app.documents.extraction_service import DocumentExtractionService
+from app.documents.indexing_service import DocumentIndexingService
 from app.documents.service import DocumentService
 from app.documents.storage import LocalDocumentStorage
 
@@ -38,3 +42,15 @@ def get_document_chunking_service(
     session: Annotated[Session, Depends(get_session)],
 ) -> DocumentChunkingService:
     return DocumentChunkingService(session, TextChunker())
+
+
+def get_embedding_client() -> Iterator[GeminiEmbeddingClient]:
+    with httpx.Client(follow_redirects=False, timeout=15) as http:
+        yield GeminiEmbeddingClient(os.environ.get("GEMINI_API_KEY", ""), http)
+
+
+def get_document_indexing_service(
+    session: Annotated[Session, Depends(get_session)],
+    embeddings: Annotated[GeminiEmbeddingClient, Depends(get_embedding_client)],
+) -> DocumentIndexingService:
+    return DocumentIndexingService(session, embeddings)

@@ -33,7 +33,11 @@ class DocumentExtractionService:
         with self._session.begin():
             document = self._require_document(document_id)
             self._ensure_extractable(document)
-            if document.status in (DocumentStatus.EXTRACTED, DocumentStatus.CHUNKED):
+            if document.status in (
+                DocumentStatus.EXTRACTED,
+                DocumentStatus.CHUNKED,
+                DocumentStatus.INDEXED,
+            ):
                 return document
         try:
             with self._storage.open(document_id) as source:
@@ -47,6 +51,7 @@ class DocumentExtractionService:
             if document.status not in (
                 DocumentStatus.EXTRACTED,
                 DocumentStatus.CHUNKED,
+                DocumentStatus.INDEXED,
             ):
                 self._repository.replace_pages(
                     document_id,
@@ -78,6 +83,7 @@ class DocumentExtractionService:
             if document.status not in (
                 DocumentStatus.EXTRACTED,
                 DocumentStatus.CHUNKED,
+                DocumentStatus.INDEXED,
             ):
                 document.status = DocumentStatus.FAILED
                 document.extraction_error = code

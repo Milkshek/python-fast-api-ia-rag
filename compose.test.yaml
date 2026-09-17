@@ -2,7 +2,9 @@ name: document-intelligence-tests
 
 services:
   db-test:
-    image: postgres:17-bookworm
+    build:
+      context: .
+      dockerfile: docker/postgres.Dockerfile
     environment:
       POSTGRES_DB: document_intelligence_test
       POSTGRES_USER: test
