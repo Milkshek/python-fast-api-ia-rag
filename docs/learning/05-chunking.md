@@ -11,7 +11,8 @@ GET /documents/{id}/chunks?limit=20&offset=0 renvoie les passages dans leur ordr
 Le découpage exige EXTRACTED. Les autres états non traitables donnent 409 ; un
 UUID absent donne 404. CHUNKED retourne le résultat existant sans recalcul, même
 si la configuration du chunker change. Une modification future de stratégie
-nécessitera une opération explicite de reconstruction et de réindexation.
+nécessitera une opération explicite de reconstruction et de réindexation. Depuis J7,
+un document INDEXED conserve également ses chunks et son statut lors de cette relance.
 
 ## Pourquoi découper ?
 

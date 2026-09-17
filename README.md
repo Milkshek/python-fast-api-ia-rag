@@ -79,7 +79,8 @@ fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 ## API Documents
 
 L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
-L’indexation et l’authentification ne sont pas encore implémentées.
+L’indexation Gemini est disponible ; la recherche, les réponses LLM et
+l’authentification ne sont pas encore implémentées.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
@@ -87,6 +88,7 @@ L’indexation et l’authentification ne sont pas encore implémentées.
 | POST | `/documents/upload` | Importer un PDF en multipart, HTTP 201 et Location |
 | POST | `/documents/{id}/extract` | Extraire le texte, HTTP 200 |
 | POST | `/documents/{id}/chunk` | Découper le texte extrait, HTTP 200 |
+| POST | `/documents/{id}/index` | Calculer et stocker les embeddings, HTTP 200 |
 | GET | `/documents/{id}/chunks?limit=20&offset=0` | Lire les chunks et leurs positions |
 | GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
@@ -226,3 +228,26 @@ supprime aussi ses chunks. Un document non extrait retourne 409.
 Ce découpage simple peut couper les phrases et ne constitue pas encore une
 indexation vectorielle. Voir [le guide J6](docs/learning/05-chunking.md) pour
 l'algorithme, les limites et les garanties transactionnelles.
+
+
+## Indexer avec Gemini (J7)
+
+Configurer `GEMINI_API_KEY` dans `.env` local, avec une clé de projet utilisant
+l'offre gratuite, puis `make up`. Aucune clé dans Git. Le texte des chunks est
+transmis à Google ; aucun modèle n'est installé localement. L'application ne peut
+pas détecter si la facturation a été activée sur le compte associé à une clé.
+
+Après upload/extract/chunk, appeler `POST /documents/{id}/index` : le statut devient
+`INDEXED`, avec `embedding_model=gemini-embedding-2` et `embedding_dimensions=768`.
+PostgreSQL 17 embarque désormais pgvector, en conservant le volume de données.
+Une relance garde l'index existant ; `?force=true` demande un recalcul explicite.
+La réindexation conserve l'ancien résultat si le calcul ou la transaction échoue.
+
+Maximum 100 chunks par indexation ; un appel Gemini par chunk, sans retry automatique.
+Quota atteint : 429 ; clé absente/erreur fournisseur : 503 ; réponse invalide : 502.
+Les tests automatiques simulent Gemini et utilisent une vraie base pgvector.
+Les offres gratuites sont soumises aux quotas du fournisseur ; aucun fallback payant
+n'est implémenté. La recherche sémantique sera ajoutée en J8.
+
+Voir [le guide J7](docs/learning/06-embeddings.md) pour le protocole, les transactions,
+la reprise, les limites et les questions de compréhension.
