@@ -79,8 +79,8 @@ fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 ## API Documents
 
 L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
-L’indexation Gemini est disponible ; la recherche, les réponses LLM et
-l’authentification ne sont pas encore implémentées.
+L’indexation Gemini et la recherche sémantique sont disponibles. Les réponses LLM
+et l’authentification ne sont pas encore implémentées.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
@@ -89,6 +89,7 @@ l’authentification ne sont pas encore implémentées.
 | POST | `/documents/{id}/extract` | Extraire le texte, HTTP 200 |
 | POST | `/documents/{id}/chunk` | Découper le texte extrait, HTTP 200 |
 | POST | `/documents/{id}/index` | Calculer et stocker les embeddings, HTTP 200 |
+| POST | `/documents/{id}/search` | Rechercher les passages du document, HTTP 200 |
 | GET | `/documents/{id}/chunks?limit=20&offset=0` | Lire les chunks et leurs positions |
 | GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
@@ -247,7 +248,29 @@ Maximum 100 chunks par indexation ; un appel Gemini par chunk, sans retry automa
 Quota atteint : 429 ; clé absente/erreur fournisseur : 503 ; réponse invalide : 502.
 Les tests automatiques simulent Gemini et utilisent une vraie base pgvector.
 Les offres gratuites sont soumises aux quotas du fournisseur ; aucun fallback payant
-n'est implémenté. La recherche sémantique sera ajoutée en J8.
+n'est implémenté.
 
 Voir [le guide J7](docs/learning/06-embeddings.md) pour le protocole, les transactions,
 la reprise, les limites et les questions de compréhension.
+
+
+## Rechercher dans un document (J8)
+
+Après indexation, appeler `POST /documents/{id}/search` avec :
+
+```json
+{"question": "Quelle est la durée du préavis ?", "top_k": 5}
+```
+
+Un seul appel Gemini encode la question. PostgreSQL/pgvector classe ensuite les
+chunks du document sélectionné par distance cosinus. La réponse est une liste
+`[{"chunk": {...}, "score": 0.72}]` avec texte, page et offsets. Le score sert au
+classement ; ce n'est pas une probabilité de bonne réponse. Aucun texte de réponse
+n'est encore généré et une question hors sujet peut retourner des passages.
+
+Question : 1–2000 caractères après nettoyage ; `top_k` : entier 1–10, défaut 5.
+Un document non indexé ou incompatible renvoie 409, absent 404. Les erreurs Gemini
+conservent les mêmes codes que l'indexation. La recherche ne modifie pas l'index.
+
+Voir [le guide J8](docs/learning/07-semantic-search.md) pour le flux, les scores,
+la concurrence et les questions de compréhension.

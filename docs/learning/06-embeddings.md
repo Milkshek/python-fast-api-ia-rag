@@ -133,11 +133,12 @@ Sources : [Gemini embeddings](https://ai.google.dev/gemini-api/docs/embeddings),
 
 ## Organisation des routes HTTP
 
-`app/documents/router.py` assemble deux `APIRouter` avec `include_router()` :
+`app/documents/router.py` assemble les `APIRouter` avec `include_router()` :
 
 - `routes/documents.py` : création, upload, liste, lecture et suppression ;
 - `routes/processing.py` : extraction et lecture des pages, découpage et lecture
-  des chunks, indexation.
+  des chunks, indexation ;
+- `routes/search.py` : recherche sémantique ajoutée en J8.
 
 Le préfixe `/documents` et le tag OpenAPI sont définis une seule fois dans le
 routeur principal. Les sous-routeurs conservent la validation HTTP et la traduction
