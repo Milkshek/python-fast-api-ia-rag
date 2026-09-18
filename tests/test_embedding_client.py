@@ -103,3 +103,25 @@ def test_missing_key_and_large_documents_do_not_call_provider():
             GeminiEmbeddingClient("", http).embed_documents(["A"])
         with pytest.raises(EmbeddingLimitExceeded):
             GeminiEmbeddingClient("key", http).embed_documents(["A"] * 101)
+
+
+def test_query_uses_question_answering_prefix_and_same_dimensions():
+    received = []
+
+    def respond(request):
+        received.append(request)
+        return httpx.Response(
+            200, json={"embedding": {"values": [3.0, 4.0] + [0.0] * (DIMENSIONS - 2)}}
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(respond)) as http:
+        vector = GeminiEmbeddingClient("key", http).embed_query("Quel préavis ?")
+    assert vector[:2] == [0.6, 0.8]
+    assert len(vector) == DIMENSIONS
+    assert len(received) == 1
+    payload = json.loads(received[0].content)
+    assert payload["content"]["parts"] == [
+        {"text": "task: question answering | query: Quel préavis ?"}
+    ]
+    assert payload["embedContentConfig"]["outputDimensionality"] == DIMENSIONS
+    assert MODEL in received[0].url.path

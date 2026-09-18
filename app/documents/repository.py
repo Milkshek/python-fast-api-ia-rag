@@ -97,3 +97,19 @@ class DocumentRepository:
             )
         )
         self._session.add_all(embeddings)
+
+    def search_chunks(
+        self, document_id: UUID, vector: Sequence[float], *, top_k: int
+    ) -> Sequence[tuple[DocumentChunk, float]]:
+        distance = ChunkEmbedding.vector.cosine_distance(vector)
+        statement = (
+            select(DocumentChunk, distance.label("distance"))
+            .join(ChunkEmbedding, ChunkEmbedding.chunk_id == DocumentChunk.id)
+            .where(DocumentChunk.document_id == document_id)
+            .order_by(distance, DocumentChunk.chunk_index)
+            .limit(top_k)
+        )
+        return [
+            (chunk, float(distance))
+            for chunk, distance in self._session.execute(statement)
+        ]

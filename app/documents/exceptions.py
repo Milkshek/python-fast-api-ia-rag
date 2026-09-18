@@ -39,3 +39,7 @@ class DocumentChunkingConflict(Exception):
 
 class DocumentIndexingConflict(Exception):
     pass
+
+
+class DocumentSearchConflict(Exception):
+    pass

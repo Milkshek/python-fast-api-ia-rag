@@ -63,6 +63,11 @@ class GeminiEmbeddingClient:
             )
         return vectors
 
+    def embed_query(self, question: str) -> list[float]:
+        if not self._api_key:
+            raise EmbeddingUnavailable
+        return self._embed(f"task: question answering | query: {question}", 15)
+
     def _embed(self, content: str, timeout: float) -> list[float]:
         try:
             response = self._http.post(

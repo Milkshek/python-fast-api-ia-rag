@@ -14,6 +14,7 @@ from app.documents.chunking_service import DocumentChunkingService
 from app.documents.extraction import PdfTextExtractor
 from app.documents.extraction_service import DocumentExtractionService
 from app.documents.indexing_service import DocumentIndexingService
+from app.documents.search_service import DocumentSearchService
 from app.documents.service import DocumentService
 from app.documents.storage import LocalDocumentStorage
 
@@ -54,3 +55,10 @@ def get_document_indexing_service(
     embeddings: Annotated[GeminiEmbeddingClient, Depends(get_embedding_client)],
 ) -> DocumentIndexingService:
     return DocumentIndexingService(session, embeddings)
+
+
+def get_document_search_service(
+    session: Annotated[Session, Depends(get_session)],
+    embeddings: Annotated[GeminiEmbeddingClient, Depends(get_embedding_client)],
+) -> DocumentSearchService:
+    return DocumentSearchService(session, embeddings)
