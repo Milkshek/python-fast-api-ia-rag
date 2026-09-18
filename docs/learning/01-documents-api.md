@@ -9,7 +9,7 @@ un prérequis dans le périmètre actuel d'AGENTS.md.
 1. `app/documents/schemas.py` : les données acceptées et retournées par l'API.
 2. `app/documents/models.py` : leur représentation persistante dans PostgreSQL.
 3. `app/database/session.py` : création du moteur et session par requête.
-4. `app/documents/router.py` : contrat HTTP et traduction des erreurs métier.
+4. `app/documents/routes/documents.py` : contrat HTTP et traduction des erreurs métier.
 5. `app/documents/dependencies.py` : construction du service avec la session injectée.
 6. `app/documents/service.py` : cas d’usage et transactions.
 7. `app/documents/repository.py` : requêtes SQLAlchemy sans commit.

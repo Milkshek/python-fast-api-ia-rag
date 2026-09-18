@@ -130,3 +130,17 @@ Sources : [Gemini embeddings](https://ai.google.dev/gemini-api/docs/embeddings),
 [protocole REST](https://ai.google.dev/api/embeddings),
 [offres et tarifs](https://ai.google.dev/gemini-api/docs/pricing),
 [pgvector](https://github.com/pgvector/pgvector).
+
+## Organisation des routes HTTP
+
+`app/documents/router.py` assemble deux `APIRouter` avec `include_router()` :
+
+- `routes/documents.py` : création, upload, liste, lecture et suppression ;
+- `routes/processing.py` : extraction et lecture des pages, découpage et lecture
+  des chunks, indexation.
+
+Le préfixe `/documents` et le tag OpenAPI sont définis une seule fois dans le
+routeur principal. Les sous-routeurs conservent la validation HTTP et la traduction
+des erreurs métier ; les services conservent les cas d’usage et les transactions.
+Il s’agit de modules Python et de composition de routeurs FastAPI, sans classes
+de contrôleurs supplémentaires. Les URL et les réponses restent identiques.

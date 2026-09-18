@@ -20,7 +20,7 @@ pas que le document est prêt à répondre à des questions.
 
 ## Ordre de lecture
 
-1. `app/documents/router.py` : formulaire HTTP, validation, réponses d'erreur.
+1. `app/documents/routes/documents.py` : formulaire HTTP, validation, réponses d'erreur.
 2. `app/documents/dependencies.py` : stockage concret et session injectés au service.
 3. `app/documents/service.py` : upload, compensation et suppression reprenable.
 4. `app/documents/storage.py` : copie par blocs, fichier temporaire, suppression.
