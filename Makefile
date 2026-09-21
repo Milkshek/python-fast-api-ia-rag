@@ -7,7 +7,7 @@ TOOLS_RUN := $(TOOLS_COMPOSE) run --build --rm --no-deps tools
 LOCK_ARGS ?=
 
 .PHONY: help init up build down restart ps logs shell db-shell check health migrate test
-.PHONY: format lint typecheck quality lock
+.PHONY: format lint typecheck quality lock evaluate
 
 help: ## Afficher les commandes disponibles
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  make %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -55,10 +55,10 @@ test: ## Tester sur PostgreSQL isolé, puis retirer les conteneurs de test
 		$(TEST_COMPOSE) run --build --rm tests
 
 format: ## Formater le code et organiser les imports
-	$(TOOLS_RUN) sh -c 'ruff check --select I --fix app tests migrations && ruff format app tests migrations'
+	$(TOOLS_RUN) sh -c 'ruff check --select I --fix app tests migrations evaluation && ruff format app tests migrations evaluation'
 
 lint: ## Vérifier les règles de lint et le format sans modifier les fichiers
-	$(TOOLS_RUN) sh -c 'ruff check app tests migrations && ruff format --check app tests migrations'
+	$(TOOLS_RUN) sh -c 'ruff check app tests migrations evaluation && ruff format --check app tests migrations evaluation'
 
 typecheck: ## Vérifier les types du code applicatif avec mypy strict
 	$(TOOLS_RUN) mypy
@@ -70,3 +70,8 @@ quality: ## Exécuter lint, types puis tests PostgreSQL
 
 lock: ## Générer les locks ; LOCK_ARGS=--upgrade pour actualiser les versions
 	$(TOOLS_RUN) sh -c 'pip-compile --quiet --generate-hashes $(LOCK_ARGS) -o requirements.txt requirements.in && pip-compile --quiet --generate-hashes $(LOCK_ARGS) -o requirements-dev.txt requirements-dev.in'
+
+
+evaluate: ## Évaluer le RAG réel via l'API démarrée (consomme le quota Gemini)
+	@mkdir -p reports
+	EVALUATION_UID=$$(id -u) EVALUATION_GID=$$(id -g) $(COMPOSE) -f compose.yaml -f compose.eval.yaml run --build --rm --no-deps evaluation

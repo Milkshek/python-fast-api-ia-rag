@@ -4,6 +4,8 @@
 !pyproject.toml
 !tests/
 !tests/**
+!evaluation/
+!evaluation/**
 !alembic.ini
 !migrations/
 !migrations/**

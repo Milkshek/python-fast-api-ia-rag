@@ -1,0 +1,9 @@
+services:
+  evaluation:
+    build:
+      context: .
+      target: test
+    user: "${EVALUATION_UID:-10001}:${EVALUATION_GID:-10001}"
+    command: python -m evaluation.run
+    volumes:
+      - ./reports:/workspace/reports

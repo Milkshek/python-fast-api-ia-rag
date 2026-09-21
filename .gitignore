@@ -15,3 +15,6 @@ htmlcov/
 # Plans de travail locaux
 **/plans/**/*.md
 LEARNING_NOTES.md
+
+# Rapports locaux des évaluations Gemini
+reports/

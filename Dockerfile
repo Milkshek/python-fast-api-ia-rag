@@ -26,5 +26,6 @@ COPY requirements-dev.txt .
 RUN pip install --no-cache-dir --require-hashes -r requirements-dev.txt
 COPY --chown=appuser:appuser pyproject.toml .
 COPY --chown=appuser:appuser tests ./tests
+COPY --chown=appuser:appuser evaluation ./evaluation
 USER appuser
 CMD ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider"]
