@@ -7,8 +7,10 @@ import httpx2 as httpx
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.ai.answers import GeminiAnswerClient
 from app.ai.embeddings import GeminiEmbeddingClient
 from app.database.session import get_session
+from app.documents.answer_service import DocumentAnswerService
 from app.documents.chunking import TextChunker
 from app.documents.chunking_service import DocumentChunkingService
 from app.documents.extraction import PdfTextExtractor
@@ -62,3 +64,16 @@ def get_document_search_service(
     embeddings: Annotated[GeminiEmbeddingClient, Depends(get_embedding_client)],
 ) -> DocumentSearchService:
     return DocumentSearchService(session, embeddings)
+
+
+def get_answer_client() -> Iterator[GeminiAnswerClient]:
+    with httpx.Client(follow_redirects=False, timeout=30) as http:
+        yield GeminiAnswerClient(os.environ.get("GEMINI_API_KEY", ""), http)
+
+
+def get_document_answer_service(
+    session: Annotated[Session, Depends(get_session)],
+    search: Annotated[DocumentSearchService, Depends(get_document_search_service)],
+    answers: Annotated[GeminiAnswerClient, Depends(get_answer_client)],
+) -> DocumentAnswerService:
+    return DocumentAnswerService(session, search, answers)
