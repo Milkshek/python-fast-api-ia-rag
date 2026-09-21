@@ -299,3 +299,25 @@ ni réponse n'est encore persistée. L'évaluation sur corpus sera l'étape J10.
 
 Voir [le guide J9](docs/learning/08-grounded-answers.md) pour le flux RAG, le prompt,
 les sorties structurées et les limites des citations.
+
+
+## Évaluer le RAG (J10)
+
+Après `make up`, lancer `make evaluate` pour importer trois PDF fictifs et poser
+dix questions au véritable Gemini. Cette commande consomme le quota du projet
+configuré ; elle ne fait pas partie de `make quality`.
+
+Le corpus versionné se trouve dans `evaluation/corpus.json`. Chaque exécution
+écrit un rapport local `reports/rag-*.json` (ignoré par Git), puis supprime uniquement
+les documents créés pour cet essai. Les erreurs de nettoyage sont consignées.
+Un quota atteint arrête la campagne sans retry automatique.
+
+Les contrôles du runner vérifient les sources et les pages attendues. La justesse
+des réponses exige une relecture du texte avec les attendus : une commande réussie
+ne constitue pas, à elle seule, une validation sémantique.
+
+Voir [le guide J10](docs/learning/09-rag-evaluation.md) pour les critères et limites.
+
+[Bilan J10 du 21 septembre 2026](docs/evaluation/2026-09-21-rag-baseline.md) :
+huit réponses factuelles soutenues et deux abstentions sur le corpus synthétique.
+Ces résultats ne garantissent pas la qualité sur tous les documents.
