@@ -5,11 +5,11 @@ from test_chunking_failures import extracted_document
 from app.ai.embeddings import DIMENSIONS, EmbeddingQuotaExceeded, GeminiEmbeddingClient
 from app.database.session import SessionFactory
 from app.documents.chunking import TextChunker
-from app.documents.chunking_service import DocumentChunkingService
 from app.documents.exceptions import DocumentIndexingConflict, DocumentNotFound
-from app.documents.indexing_service import DocumentIndexingService
 from app.documents.models import ChunkEmbedding, Document
-from app.documents.service import DocumentService
+from app.documents.services.chunking import DocumentChunkingService
+from app.documents.services.documents import DocumentService
+from app.documents.services.indexing import DocumentIndexingService
 from app.documents.status import DocumentStatus
 from app.documents.storage import LocalDocumentStorage
 
@@ -139,7 +139,7 @@ def test_late_extraction_preserves_concurrent_index(tmp_path, late_failure):
 
     from app.documents.exceptions import DocumentExtractionFailed
     from app.documents.extraction import PdfTextExtractor
-    from app.documents.extraction_service import DocumentExtractionService
+    from app.documents.services.extraction import DocumentExtractionService
 
     storage = LocalDocumentStorage(tmp_path)
     with SessionFactory() as setup:

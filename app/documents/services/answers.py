@@ -8,7 +8,7 @@ from app.ai.embeddings import DIMENSIONS, MODEL
 from app.documents.exceptions import DocumentNotFound, DocumentSearchConflict
 from app.documents.models import DocumentChunk
 from app.documents.repository import DocumentRepository
-from app.documents.search_service import DocumentSearchHit, DocumentSearchService
+from app.documents.services.search import DocumentSearchHit, DocumentSearchService
 from app.documents.status import DocumentStatus
 
 MAX_PASSAGES = 5

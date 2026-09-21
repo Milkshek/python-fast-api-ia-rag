@@ -31,7 +31,7 @@ from app.documents.schemas.documents import (
     DocumentCreate,
     DocumentRead,
 )
-from app.documents.service import DocumentService
+from app.documents.services.documents import DocumentService
 
 router = APIRouter()
 ServiceDependency = Annotated[DocumentService, Depends(get_document_service)]

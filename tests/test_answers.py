@@ -9,10 +9,10 @@ from test_search import indexed_document, vector
 from app.ai.answers import GeminiAnswerClient
 from app.ai.embeddings import GeminiEmbeddingClient
 from app.database.session import SessionFactory
-from app.documents.answer_service import ABSTENTION, DocumentAnswerService
 from app.documents.dependencies import get_answer_client, get_embedding_client
 from app.documents.models import Document
-from app.documents.search_service import DocumentSearchService
+from app.documents.services.answers import ABSTENTION, DocumentAnswerService
+from app.documents.services.search import DocumentSearchService
 from app.documents.status import DocumentStatus
 from app.main import app
 
@@ -204,7 +204,7 @@ def test_generation_runs_without_sql_transaction():
 
 def test_context_is_bounded_without_cutting_passages():
     from app.documents.models import DocumentChunk
-    from app.documents.search_service import DocumentSearchHit
+    from app.documents.services.search import DocumentSearchHit
 
     hits = [DocumentSearchHit(DocumentChunk(text="x" * 1500), 1.0) for _ in range(5)]
     # Test the context selection without any network or database access.

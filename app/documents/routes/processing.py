@@ -15,7 +15,6 @@ from app.ai.embeddings import (
     EmbeddingUnavailable,
     InvalidEmbeddingResponse,
 )
-from app.documents.chunking_service import DocumentChunkingService
 from app.documents.dependencies import (
     get_document_chunking_service,
     get_document_extraction_service,
@@ -29,14 +28,15 @@ from app.documents.exceptions import (
     DocumentNotFound,
     DocumentStorageUnavailable,
 )
-from app.documents.extraction_service import DocumentExtractionService
-from app.documents.indexing_service import DocumentIndexingService
 from app.documents.models import Document, DocumentChunk, DocumentPage
 from app.documents.schemas.documents import DocumentRead
 from app.documents.schemas.processing import (
     DocumentChunkRead,
     DocumentPageRead,
 )
+from app.documents.services.chunking import DocumentChunkingService
+from app.documents.services.extraction import DocumentExtractionService
+from app.documents.services.indexing import DocumentIndexingService
 
 router = APIRouter()
 ExtractionDependency = Annotated[

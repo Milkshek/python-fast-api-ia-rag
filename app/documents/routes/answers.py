@@ -9,10 +9,10 @@ from app.ai.embeddings import (
     EmbeddingUnavailable,
     InvalidEmbeddingResponse,
 )
-from app.documents.answer_service import DocumentAnswer, DocumentAnswerService
 from app.documents.dependencies import get_document_answer_service
 from app.documents.exceptions import DocumentNotFound, DocumentSearchConflict
 from app.documents.schemas.answers import DocumentAnswerRead, DocumentQuestion
+from app.documents.services.answers import DocumentAnswer, DocumentAnswerService
 
 router = APIRouter()
 AnswerDependency = Annotated[

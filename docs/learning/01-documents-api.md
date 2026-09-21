@@ -11,7 +11,7 @@ un prérequis dans le périmètre actuel d'AGENTS.md.
 3. `app/database/session.py` : création du moteur et session par requête.
 4. `app/documents/routes/documents.py` : contrat HTTP et traduction des erreurs métier.
 5. `app/documents/dependencies.py` : construction du service avec la session injectée.
-6. `app/documents/service.py` : cas d’usage et transactions.
+6. `app/documents/services/documents.py` : cas d’usage et transactions.
 7. `app/documents/repository.py` : requêtes SQLAlchemy sans commit.
 8. `migrations/versions/0001_documents.py` : évolution versionnée du schéma.
 9. `tests/test_documents.py` : comportements HTTP attendus.

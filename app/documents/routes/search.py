@@ -11,7 +11,7 @@ from app.ai.embeddings import (
 from app.documents.dependencies import get_document_search_service
 from app.documents.exceptions import DocumentNotFound, DocumentSearchConflict
 from app.documents.schemas.search import DocumentSearchHitRead, DocumentSearchRequest
-from app.documents.search_service import DocumentSearchHit, DocumentSearchService
+from app.documents.services.search import DocumentSearchHit, DocumentSearchService
 
 router = APIRouter()
 SearchDependency = Annotated[

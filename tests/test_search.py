@@ -199,7 +199,7 @@ def test_document_rechecked_after_provider_call(search_client, change):
 
 
 def test_query_embedding_runs_without_sql_transaction():
-    from app.documents.search_service import DocumentSearchService
+    from app.documents.services.search import DocumentSearchService
 
     identifier = indexed_document([vector(1.0, 0.0)])
     with SessionFactory() as session:

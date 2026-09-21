@@ -37,7 +37,7 @@ volume n'aide pas l'utilisateur du produit. Elles sont stockées en base et test
 
 1. `router.py` : HTTP et traduction des erreurs.
 2. `dependencies.py` : clé d'environnement, client HTTP fermé via yield/with.
-3. `indexing_service.py` : lecture des chunks, calcul distant, publication atomique.
+3. `services/indexing.py` : lecture des chunks, calcul distant, publication atomique.
 4. `app/ai/embeddings.py` : protocole Gemini, contrôle de la réponse et normalisation.
 5. `repository.py`, `models.py`, migration 0005 : vecteurs persistés et cascade.
 

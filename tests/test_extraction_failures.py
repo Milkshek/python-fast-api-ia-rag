@@ -12,9 +12,9 @@ from app.documents.exceptions import (
     DocumentStorageUnavailable,
 )
 from app.documents.extraction import PdfTextExtractor
-from app.documents.extraction_service import DocumentExtractionService
 from app.documents.models import Document, DocumentPage
-from app.documents.service import DocumentService
+from app.documents.services.documents import DocumentService
+from app.documents.services.extraction import DocumentExtractionService
 from app.documents.status import DocumentStatus
 from app.documents.storage import LocalDocumentStorage
 

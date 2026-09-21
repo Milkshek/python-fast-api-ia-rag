@@ -6,7 +6,7 @@ from app.database.session import SessionFactory
 from app.documents.exceptions import DocumentNotFound
 from app.documents.models import Document
 from app.documents.repository import DocumentRepository
-from app.documents.service import DocumentService
+from app.documents.services.documents import DocumentService
 from app.documents.storage import LocalDocumentStorage
 
 

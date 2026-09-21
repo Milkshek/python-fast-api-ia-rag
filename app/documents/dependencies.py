@@ -10,14 +10,14 @@ from sqlalchemy.orm import Session
 from app.ai.answers import GeminiAnswerClient
 from app.ai.embeddings import GeminiEmbeddingClient
 from app.database.session import get_session
-from app.documents.answer_service import DocumentAnswerService
 from app.documents.chunking import TextChunker
-from app.documents.chunking_service import DocumentChunkingService
 from app.documents.extraction import PdfTextExtractor
-from app.documents.extraction_service import DocumentExtractionService
-from app.documents.indexing_service import DocumentIndexingService
-from app.documents.search_service import DocumentSearchService
-from app.documents.service import DocumentService
+from app.documents.services.answers import DocumentAnswerService
+from app.documents.services.chunking import DocumentChunkingService
+from app.documents.services.documents import DocumentService
+from app.documents.services.extraction import DocumentExtractionService
+from app.documents.services.indexing import DocumentIndexingService
+from app.documents.services.search import DocumentSearchService
 from app.documents.storage import LocalDocumentStorage
 
 

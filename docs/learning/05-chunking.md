@@ -64,7 +64,7 @@ d'un document entraîne celle des pages, puis des chunks par cascade SQL.
 
 1. `chunking.py` : TextChunker, algorithme pur sans SQL ni HTTP ; TextChunk est une
    dataclass figée qui porte le résultat d'une fenêtre.
-2. `chunking_service.py` : charger les pages, construire les chunks, publier.
+2. `services/chunking.py` : charger les pages, construire les chunks, publier.
 3. `repository.py` : SQL ordonné et ajout des chunks, aucun commit.
 4. `models.py` et migration 0004 : intégrité, unicité et cascade.
 5. `router.py` et `schemas.py` : contrats HTTP et pagination.

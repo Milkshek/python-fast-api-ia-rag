@@ -15,7 +15,7 @@ ensuite. UPLOADED signifie uniquement que le fichier est stocké.
 ## Responsabilités et ordre de lecture
 
 - `router.py` : contrats HTTP, pagination et traduction des exceptions.
-- `extraction_service.py` : cas d'usage, transactions et règles de concurrence.
+- `services/extraction.py` : cas d'usage, transactions et règles de concurrence.
 - `extraction.py` : parsing pypdf et normalisation, sans HTTP ni SQL.
 - `storage.py` : ouverture du fichier avec fermeture garantie par le context manager.
 - `repository.py` : écritures et lectures SQL, sans commit.

@@ -8,12 +8,12 @@ from test_extraction import make_pdf
 
 from app.database.session import SessionFactory
 from app.documents.chunking import TextChunker
-from app.documents.chunking_service import DocumentChunkingService
 from app.documents.exceptions import DocumentChunkingConflict, DocumentNotFound
 from app.documents.extraction import PdfTextExtractor
-from app.documents.extraction_service import DocumentExtractionService
 from app.documents.models import Document, DocumentChunk
-from app.documents.service import DocumentService
+from app.documents.services.chunking import DocumentChunkingService
+from app.documents.services.documents import DocumentService
+from app.documents.services.extraction import DocumentExtractionService
 from app.documents.status import DocumentStatus
 from app.documents.storage import LocalDocumentStorage
 from app.main import app
