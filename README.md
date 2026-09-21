@@ -79,8 +79,8 @@ fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 ## API Documents
 
 L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
-L’indexation Gemini et la recherche sémantique sont disponibles. Les réponses LLM
-et l’authentification ne sont pas encore implémentées.
+L’indexation Gemini, la recherche sémantique et les réponses sourcées sont disponibles.
+Les conversations persistées et l’authentification ne sont pas encore implémentées.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
@@ -90,6 +90,7 @@ et l’authentification ne sont pas encore implémentées.
 | POST | `/documents/{id}/chunk` | Découper le texte extrait, HTTP 200 |
 | POST | `/documents/{id}/index` | Calculer et stocker les embeddings, HTTP 200 |
 | POST | `/documents/{id}/search` | Rechercher les passages du document, HTTP 200 |
+| POST | `/documents/{id}/ask` | Obtenir une réponse sourcée ou une abstention, HTTP 200 |
 | GET | `/documents/{id}/chunks?limit=20&offset=0` | Lire les chunks et leurs positions |
 | GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
 | GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
@@ -265,8 +266,8 @@ Après indexation, appeler `POST /documents/{id}/search` avec :
 Un seul appel Gemini encode la question. PostgreSQL/pgvector classe ensuite les
 chunks du document sélectionné par distance cosinus. La réponse est une liste
 `[{"chunk": {...}, "score": 0.72}]` avec texte, page et offsets. Le score sert au
-classement ; ce n'est pas une probabilité de bonne réponse. Aucun texte de réponse
-n'est encore généré et une question hors sujet peut retourner des passages.
+classement ; ce n'est pas une probabilité de bonne réponse. Cette route ne génère
+pas de texte de réponse et une question hors sujet peut retourner des passages.
 
 Question : 1–2000 caractères après nettoyage ; `top_k` : entier 1–10, défaut 5.
 Un document non indexé ou incompatible renvoie 409, absent 404. Les erreurs Gemini
@@ -274,3 +275,27 @@ conservent les mêmes codes que l'indexation. La recherche ne modifie pas l'inde
 
 Voir [le guide J8](docs/learning/07-semantic-search.md) pour le flux, les scores,
 la concurrence et les questions de compréhension.
+
+
+## Poser une question avec sources (J9)
+
+Appeler `POST /documents/{id}/ask` avec `{"question": "Quelle est la durée du préavis ?"}`.
+Le service réutilise la recherche J8, transmet au plus cinq passages complets
+(5000 caractères de texte) à `gemini-3.1-flash-lite`, puis retourne :
+
+```json
+{"answer": "Le préavis est de trois mois.", "abstained": false, "sources": [{"id": 1, "chunk": {"...": "..."}}]}
+```
+
+Cet exemple abrège le chunk, qui contient UUID, document, page, offsets et texte.
+Les références sont contrôlées puis reconstruites par le backend. Si l'information
+manque dans les passages, `abstained` vaut `true` et `sources` est vide.
+Une source valide ne garantit pas que chaque affirmation soit correcte.
+
+La même clé `GEMINI_API_KEY` est utilisée, sur le projet gratuit choisi. Les quotas
+restent applicables ; aucun retry ni fallback payant. Une sortie invalide, tronquée
+ou bloquée donne 502 ; quota 429 ; fournisseur/réseau indisponible 503. Aucune question
+ni réponse n'est encore persistée. L'évaluation sur corpus sera l'étape J10.
+
+Voir [le guide J9](docs/learning/08-grounded-answers.md) pour le flux RAG, le prompt,
+les sorties structurées et les limites des citations.

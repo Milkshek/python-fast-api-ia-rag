@@ -138,7 +138,8 @@ Sources : [Gemini embeddings](https://ai.google.dev/gemini-api/docs/embeddings),
 - `routes/documents.py` : création, upload, liste, lecture et suppression ;
 - `routes/processing.py` : extraction et lecture des pages, découpage et lecture
   des chunks, indexation ;
-- `routes/search.py` : recherche sémantique ajoutée en J8.
+- `routes/search.py` : recherche sémantique ajoutée en J8 ;
+- `routes/answers.py` : réponses sourcées ajoutées en J9.
 
 Le préfixe `/documents` et le tag OpenAPI sont définis une seule fois dans le
 routeur principal. Les sous-routeurs conservent la validation HTTP et la traduction

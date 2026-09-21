@@ -116,3 +116,5 @@ métier. Aucun repository générique ni framework RAG supplémentaire n'est req
 3. Pourquoi revérifier l'état et le modèle après l'appel Gemini ?
 4. Que se passe-t-il pour une question sans rapport avec le document ?
 5. Pourquoi cette route retourne-t-elle des passages plutôt qu'une réponse rédigée ?
+
+La génération à partir de ces passages est désormais décrite dans le [guide J9](08-grounded-answers.md).
