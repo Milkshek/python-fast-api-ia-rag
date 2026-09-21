@@ -123,3 +123,13 @@ def test_timeout_and_missing_key_are_translated():
             GeminiAnswerClient("key", http).generate("Q", [])
         assert "sensitive" not in str(error.value)
         assert len(calls) == 1
+
+
+def test_empty_answer_is_allowed_for_abstention():
+    body = response_body({"answer": "", "abstained": True, "source_ids": []})
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda request: httpx.Response(200, json=body))
+    ) as http:
+        result = GeminiAnswerClient("key", http).generate("Question sans réponse", [])
+    assert result.abstained is True
+    assert result.answer == ""

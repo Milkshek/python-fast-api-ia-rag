@@ -79,6 +79,8 @@ Le contrat de génération contient :
 
 Le schéma envoyé au fournisseur contraint la forme. Pydantic vérifie encore la
 réponse côté backend : types stricts, champs attendus, taille du texte et IDs.
+Le texte peut être vide uniquement pour une abstention : le backend fournit alors
+son message fixe. Une réponse affirmative vide est rejetée.
 Cela ne prouve pas la véracité du contenu.
 
 Le service vérifie en plus :

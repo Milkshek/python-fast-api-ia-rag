@@ -127,10 +127,11 @@ def test_invalid_citations_rejected(answer_client, payload):
     assert response.status_code == 502
 
 
-def test_abstention_has_no_sources_and_controlled_message(answer_client):
+@pytest.mark.parametrize("answer", ["Je ne sais pas.", "", "  "])
+def test_abstention_has_no_sources_and_controlled_message(answer_client, answer):
     client, state, _ = answer_client
     state["payload"] = {
-        "answer": "Je ne sais pas.",
+        "answer": answer,
         "abstained": True,
         "source_ids": [],
     }
