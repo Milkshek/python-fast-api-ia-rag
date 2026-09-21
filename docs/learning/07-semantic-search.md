@@ -17,7 +17,7 @@ Le score illustré est une similarité, pas une probabilité de réponse correct
 ## Fichiers à relire
 
 1. `app/documents/routes/search.py` : contrat HTTP et traduction des erreurs.
-2. `app/documents/schemas.py` : validation et structure de réponse.
+2. `app/documents/schemas/search.py` : validation et structure de réponse.
 3. `app/documents/search_service.py` : orchestration et vérifications.
 4. `app/ai/embeddings.py` : `embed_query()` et appel Gemini.
 5. `app/documents/repository.py` : `search_chunks()` et requête pgvector.

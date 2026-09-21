@@ -6,7 +6,7 @@ un prérequis dans le périmètre actuel d'AGENTS.md.
 
 ## Ordre de lecture
 
-1. `app/documents/schemas.py` : les données acceptées et retournées par l'API.
+1. `app/documents/schemas/documents.py` : les données acceptées et retournées par l'API.
 2. `app/documents/models.py` : leur représentation persistante dans PostgreSQL.
 3. `app/database/session.py` : création du moteur et session par requête.
 4. `app/documents/routes/documents.py` : contrat HTTP et traduction des erreurs métier.

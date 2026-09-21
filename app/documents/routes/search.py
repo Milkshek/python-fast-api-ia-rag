@@ -10,7 +10,7 @@ from app.ai.embeddings import (
 )
 from app.documents.dependencies import get_document_search_service
 from app.documents.exceptions import DocumentNotFound, DocumentSearchConflict
-from app.documents.schemas import DocumentSearchHitRead, DocumentSearchRequest
+from app.documents.schemas.search import DocumentSearchHitRead, DocumentSearchRequest
 from app.documents.search_service import DocumentSearchHit, DocumentSearchService
 
 router = APIRouter()

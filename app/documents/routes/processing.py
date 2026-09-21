@@ -32,10 +32,10 @@ from app.documents.exceptions import (
 from app.documents.extraction_service import DocumentExtractionService
 from app.documents.indexing_service import DocumentIndexingService
 from app.documents.models import Document, DocumentChunk, DocumentPage
-from app.documents.schemas import (
+from app.documents.schemas.documents import DocumentRead
+from app.documents.schemas.processing import (
     DocumentChunkRead,
     DocumentPageRead,
-    DocumentRead,
 )
 
 router = APIRouter()

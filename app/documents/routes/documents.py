@@ -27,7 +27,7 @@ from app.documents.exceptions import (
     UnsupportedDocumentFile,
 )
 from app.documents.models import Document
-from app.documents.schemas import (
+from app.documents.schemas.documents import (
     DocumentCreate,
     DocumentRead,
 )

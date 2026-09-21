@@ -21,7 +21,7 @@ ne remplacent pas les UUID persistants des chunks.
 1. `app/documents/routes/answers.py` : HTTP et traduction des erreurs.
 2. `app/documents/answer_service.py` : orchestration RAG, contexte et citations.
 3. `app/ai/answers.py` : prompt, appel REST Gemini et validation de sortie.
-4. `app/documents/schemas.py` : modèles d'entrée/sortie HTTP.
+4. `app/documents/schemas/answers.py` : modèles d'entrée/sortie HTTP.
 5. `tests/test_answers.py`, `tests/test_answer_client.py` : garanties testées.
 
 ## Flux visible du premier RAG
