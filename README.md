@@ -19,6 +19,7 @@ Les identifiants d'exemple sont destinés au développement.
 
 | Service | Accès | Rôle |
 | --- | --- | --- |
+| `frontend` | http://localhost:5173 | React / TypeScript, bibliothèque de PDF |
 | `api` | http://localhost:8000/docs | FastAPI et documentation interactive |
 | `db` | localhost:5432 | PostgreSQL 17, stockage persistant |
 
@@ -44,6 +45,9 @@ make check            # Valider la configuration Compose
 make health           # Vérifier HTTP interne et une requête SQL
 make migrate          # Appliquer les migrations restantes
 make test             # Tests et migrations sur PostgreSQL isolé
+make frontend-check   # ESLint, Prettier, TypeScript, build Vite, tests React
+make frontend-format  # Formater le frontend avec Prettier
+make quality          # Vérifications backend et frontend
 ```
 
 `make health` nécessite des services démarrés. Pour vérifier aussi l'accès HTTP
@@ -57,8 +61,8 @@ les changements de configuration Compose ou de variables d'environnement.
 
 ## Configuration et persistance
 
-`.env` est ignoré par Git. `API_PORT` et `POSTGRES_PORT` permettent de changer
-les ports locaux s'ils sont déjà occupés. Les ports internes restent 8000 et 5432.
+`.env` est ignoré par Git. `API_PORT`, `POSTGRES_PORT` et `FRONTEND_PORT` permettent de changer
+les ports locaux s'ils sont déjà occupés. Les ports internes restent 8000, 5432 et 5173.
 Depuis un conteneur, PostgreSQL est joignable sous le nom `db`, pas `localhost`.
 Les variables `PG*` du service API configurent la connexion SQLAlchemy/psycopg.
 
@@ -68,11 +72,11 @@ Le volume `postgres_data` conserve la base après un arrêt ou une reconstructio
 vide ; les modifier ne change pas les identifiants d'une base déjà créée.
 
 L'API attend que PostgreSQL soit disponible au démarrage. Compose contrôle ensuite
-la santé des deux services ; ces contrôles ne redémarrent pas automatiquement un
+la santé des trois services ; ces contrôles ne redémarrent pas automatiquement un
 service devenu indisponible.
 
-Ce socle est destiné au développement local. Le frontend, le pipeline documentaire
-et les capacités IA seront ajoutés selon les étapes du programme. Les dépendances
+Ce socle est destiné au développement local. Le serveur Vite sert au développement ;
+il ne constitue pas un hébergement de production. Les dépendances
 Python sont verrouillées avec leurs dépendances transitives et hashes dans les
 fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
 
@@ -321,3 +325,24 @@ Voir [le guide J10](docs/learning/09-rag-evaluation.md) pour les critères et li
 [Bilan J10 du 21 septembre 2026](docs/evaluation/2026-09-21-rag-baseline.md) :
 huit réponses factuelles soutenues et deux abstentions sur le corpus synthétique.
 Ces résultats ne garantissent pas la qualité sur tous les documents.
+
+## Interface Documents (J11)
+
+Ouvrir http://localhost:5173 après `make up`. Importer un PDF, sélectionner un
+élément de la bibliothèque, puis lancer successivement l’extraction, le découpage
+et l’indexation. La bibliothèque est paginée par 20 documents. `Actualiser` recharge
+la page et remet la sélection à zéro. Les opérations affichent leur attente et
+leurs erreurs ; aucune relance ni indexation automatique n’est effectuée.
+
+L’indexation transmet le texte des passages à Gemini et consomme le quota du compte.
+La clé reste exclusivement côté API. Le navigateur appelle `/api/documents` ;
+le proxy de développement Vite relaie vers `http://api:8000/documents` sur le réseau
+Docker, sans configuration CORS supplémentaire.
+
+Les sources React et `index.html` sont montés pour le rechargement à chaud.
+Après modification de la configuration ou des dépendances, relancer `make up`.
+`package.json` décrit les contraintes npm ; `package-lock.json` verrouille l’arbre
+installé par `npm ci`. Aucun Node.js local n’est nécessaire.
+
+Cette étape couvre les documents ; les conversations et l’affichage des réponses
+sourcées seront ajoutés en J12/J13. Voir [le guide J11](docs/learning/10-react-documents.md).
