@@ -18,3 +18,8 @@ LEARNING_NOTES.md
 
 # Rapports locaux des évaluations Gemini
 reports/
+
+# Frontend local
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/

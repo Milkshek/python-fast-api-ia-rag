@@ -7,7 +7,7 @@ TOOLS_RUN := $(TOOLS_COMPOSE) run --build --rm --no-deps tools
 LOCK_ARGS ?=
 
 .PHONY: help init up build down restart ps logs shell db-shell check health migrate test
-.PHONY: format lint typecheck quality lock evaluate
+.PHONY: format lint typecheck quality lock evaluate frontend-check frontend-format
 
 help: ## Afficher les commandes disponibles
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  make %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -63,10 +63,17 @@ lint: ## Vérifier les règles de lint et le format sans modifier les fichiers
 typecheck: ## Vérifier les types du code applicatif avec mypy strict
 	$(TOOLS_RUN) mypy
 
-quality: ## Exécuter lint, types puis tests PostgreSQL
+quality: ## Vérifier le backend et le frontend (lint, types, build, tests)
 	$(MAKE) lint
 	$(MAKE) typecheck
 	$(MAKE) test
+	$(MAKE) frontend-check
+
+frontend-check: ## Vérifier React : lint, types, build et tests d'interface
+	$(COMPOSE) run --build --rm --no-deps frontend npm run check
+
+frontend-format: ## Formater les sources et la configuration React avec Prettier
+	$(TOOLS_COMPOSE) run --build --rm --no-deps frontend-tools npm run format
 
 lock: ## Générer les locks ; LOCK_ARGS=--upgrade pour actualiser les versions
 	$(TOOLS_RUN) sh -c 'pip-compile --quiet --generate-hashes $(LOCK_ARGS) -o requirements.txt requirements.in && pip-compile --quiet --generate-hashes $(LOCK_ARGS) -o requirements-dev.txt requirements-dev.in'

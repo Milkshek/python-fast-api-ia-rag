@@ -1,6 +1,14 @@
 name: document-intelligence-tools
 
 services:
+  frontend-tools:
+    build:
+      context: ./frontend
+      target: development
+    volumes:
+      - ./frontend:/workspace
+      - /workspace/node_modules
+
   tools:
     build:
       context: .

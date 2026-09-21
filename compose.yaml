@@ -1,6 +1,26 @@
 name: document-intelligence
 
 services:
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    init: true
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend/src:/workspace/src:ro
+      - ./frontend/index.html:/workspace/index.html:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   api:
     build:
       context: .
