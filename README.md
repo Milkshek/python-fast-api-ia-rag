@@ -360,7 +360,7 @@ installé par `npm ci`. Aucun Node.js local n’est nécessaire.
 
 Le panneau Conversations permet maintenant de poser des questions et de consulter
 les réponses et extraits sources enregistrés. L’ouverture du PDF à la page citée
-reste prévue en J13. Voir [le guide J11](docs/learning/10-react-documents.md).
+est disponible via « Voir la page N ». Voir [le guide J11](docs/learning/10-react-documents.md).
 
 
 ## Conversations persistées (J12)
@@ -387,7 +387,27 @@ possible : recharger l’historique avant de renvoyer, sans retry automatique.
 Chaque question est indépendante : **l’historique stocké n’est pas transmis au
 LLM**. Les relances implicites ne sont pas encore prises en charge. Supprimer un
 document supprime également ses conversations et leurs échanges. L’affichage des
-sources est textuel ; la navigation dans le PDF appartient à J13.
+sources est textuel ; la navigation dans le PDF est disponible depuis chaque source.
 
 Voir [le guide J12](docs/learning/11-conversations.md) pour les transactions,
 l’historique, les instantanés JSONB et les questions de compréhension.
+
+
+## Consultation des sources (J13)
+
+Déplier les sources d’une réponse, puis cliquer sur « Voir la page N ». La vue
+texte affiche la page extraite et surligne le passage correspondant à la citation.
+Si la page a changé, un message remplace le surlignage pour éviter une correspondance
+erronée. « Ouvrir le PDF à cette page » ouvre le fichier original dans un nouvel
+onglet ; le positionnement dépend du lecteur PDF du navigateur.
+
+- `GET /documents/{id}/pages/{page_number}` : page extraite précise.
+- `GET /documents/{id}/file` : PDF original inline, avec prise en charge de Range.
+
+`make smoke-install` vérifie une installation vide et isolée (migrations, pipeline
+sans Gemini, fichiers, erreurs et proxy React). Aucun port publié ni clé Gemini ;
+seuls les volumes de ce projet de test sont supprimés à la sortie. Ne pas lancer
+plusieurs exemplaires de cette commande simultanément.
+
+Voir [le guide J13](docs/learning/12-source-navigation.md) pour les offsets Unicode,
+les réponses fichier, les erreurs et les limites du transfert concurrent.
