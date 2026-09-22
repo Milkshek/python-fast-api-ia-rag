@@ -1,3 +1,4 @@
+import { ApiError, request as httpRequest } from '../api/client'
 import type { DocumentRecord, ProcessingStep } from './types'
 
 export const PAGE_SIZE = 20
@@ -13,35 +14,14 @@ export function extractionMessage(code: string): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response
   try {
-    response = await fetch(`/api/documents${path}`, init)
+    return await httpRequest<T>(`/documents${path}`, init)
   } catch (error) {
-    if (init?.signal?.aborted) throw error
-    throw new Error(
-      'Impossible de joindre le serveur. Vérifiez la connexion puis réessayez.',
-      { cause: error },
-    )
-  }
-  if (!response.ok) {
-    const body = await response.json().catch(() => null)
-    const detail: unknown = body?.detail
-    if (typeof detail === 'string') throw new Error(detail)
-    if (
-      detail &&
-      typeof detail === 'object' &&
-      'code' in detail &&
-      typeof detail.code === 'string'
-    ) {
-      throw new Error(extractionMessage(detail.code))
+    if (error instanceof ApiError && error.code) {
+      throw new Error(extractionMessage(error.code), { cause: error })
     }
-    throw new Error(
-      response.status === 422
-        ? 'Vérifiez les informations saisies.'
-        : `La requête a échoué (HTTP ${response.status}).`,
-    )
+    throw error
   }
-  return response.json() as Promise<T>
 }
 
 export const documentsApi = {

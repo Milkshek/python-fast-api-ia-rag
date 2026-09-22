@@ -118,8 +118,8 @@ export function DocumentDetails({
         <div className="ready">
           <strong>Votre document est prêt.</strong>
           <p>
-            La recherche et les réponses sourcées sont disponibles dans l’API.
-            Leur interface arrive à l’étape suivante.
+            Ouvrez une conversation ci-dessous pour poser vos questions et
+            retrouver les passages utilisés dans les réponses.
           </p>
         </div>
       )}

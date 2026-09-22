@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ConversationPanel } from './conversations/ConversationPanel'
 import { documentsApi, PAGE_SIZE } from './documents/api'
 import { DocumentDetails } from './documents/DocumentDetails'
 import { DocumentList } from './documents/DocumentList'
@@ -15,6 +16,7 @@ export default function App() {
   const [busy, setBusy] = useState<'upload' | 'process' | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [asking, setAsking] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -88,7 +90,7 @@ export default function App() {
     }
   }
 
-  const disabled = loading || busy !== null
+  const disabled = loading || busy !== null || asking
   return (
     <>
       <header className="site-header">
@@ -191,6 +193,14 @@ export default function App() {
               processing={busy === 'process'}
               onProcess={(step) => void process(step)}
             />
+            {selected?.status === 'INDEXED' && (
+              <ConversationPanel
+                key={selected.id}
+                documentId={selected.id}
+                disabled={disabled}
+                onSendingChange={setAsking}
+              />
+            )}
             <p className="workspace-note">
               Chaque étape est lancée à votre demande. Vos sources restent liées
               au document d’origine.

@@ -517,3 +517,134 @@ footer {
     gap: 32px;
   }
 }
+
+.conversations {
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid #dbe1d7;
+  border-radius: 16px;
+  background: #fff;
+}
+.conversation-heading,
+.history-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.conversation-heading h2 {
+  margin: 5px 0;
+  font-size: 24px;
+}
+.conversation-heading button {
+  font-size: 12px;
+}
+.history-heading h3 {
+  font-size: 15px;
+}
+.conversation-picker {
+  margin: 22px 0;
+}
+.conversation-picker label,
+.question-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.conversation-picker select,
+.question-form textarea {
+  width: 100%;
+  font: inherit;
+  padding: 11px;
+  border: 1px solid #ccd6cd;
+  border-radius: 8px;
+  background: #fafbf7;
+  color: #243f38;
+}
+.question-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #b17224;
+  outline-offset: 3px;
+}
+.conversation-thread {
+  border-top: 1px solid #e0e7d9;
+  padding-top: 16px;
+}
+.exchange {
+  margin: 20px 0;
+}
+.question-bubble {
+  background: #edf3e7;
+  border-radius: 12px 12px 0 12px;
+  padding: 15px 18px;
+  margin-left: 32px;
+}
+.answer-bubble {
+  padding: 20px 0;
+}
+.question-bubble p,
+.answer-bubble > p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.answer-bubble > .badge {
+  margin-left: 12px;
+}
+.answer-sources {
+  margin-top: 16px;
+  background: #f7f8f3;
+  border: 1px solid #e1e6da;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+}
+.answer-sources summary {
+  cursor: pointer;
+  color: #3e684e;
+  font-weight: 600;
+}
+.answer-sources ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+.answer-sources li {
+  margin-top: 14px;
+}
+.answer-sources blockquote {
+  margin: 8px 0;
+  border-left: 2px solid #a7bb98;
+  padding-left: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #52684f;
+}
+.source-reference {
+  color: #647560;
+}
+.question-form {
+  border-top: 1px solid #e0e7d9;
+  padding-top: 20px;
+  margin-top: 12px;
+}
+.question-form .error p {
+  margin: 0 0 8px;
+}
+@media (max-width: 760px) {
+  .conversations {
+    padding: 20px;
+  }
+  .question-bubble {
+    margin-left: 12px;
+  }
+}
