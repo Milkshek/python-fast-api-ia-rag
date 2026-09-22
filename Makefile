@@ -4,6 +4,7 @@ COMPOSE := docker compose
 TEST_COMPOSE := docker compose -f compose.test.yaml
 TOOLS_COMPOSE := docker compose -f compose.tools.yaml
 TOOLS_RUN := $(TOOLS_COMPOSE) run --build --rm --no-deps tools
+SMOKE_COMPOSE := docker compose -p document-intelligence-smoke -f compose.yaml -f compose.smoke.yaml
 LOCK_ARGS ?=
 
 .PHONY: help init up build down restart ps logs shell db-shell check health migrate test
@@ -82,3 +83,10 @@ lock: ## Générer les locks ; LOCK_ARGS=--upgrade pour actualiser les versions
 evaluate: ## Évaluer le RAG réel via l'API démarrée (consomme le quota Gemini)
 	@mkdir -p reports
 	EVALUATION_UID=$$(id -u) EVALUATION_GID=$$(id -g) $(COMPOSE) -f compose.yaml -f compose.eval.yaml run --build --rm --no-deps evaluation
+
+.PHONY: smoke-install
+smoke-install: init ## Vérifier une installation isolée sans Gemini, puis supprimer ses volumes
+	@set -eu; trap '$(SMOKE_COMPOSE) down --volumes' 0; \
+		$(SMOKE_COMPOSE) up --build --wait db api frontend; \
+		$(SMOKE_COMPOSE) exec -T api alembic upgrade head; \
+		$(SMOKE_COMPOSE) run --build --rm --no-deps smoke

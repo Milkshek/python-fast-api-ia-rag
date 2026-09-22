@@ -1,0 +1,22 @@
+# Projet éphémère utilisé uniquement par make smoke-install.
+services:
+  db:
+    ports: !reset []
+    environment:
+      POSTGRES_DB: document_intelligence_smoke
+      POSTGRES_USER: smoke
+      POSTGRES_PASSWORD: smoke_only
+  api:
+    ports: !reset []
+    environment:
+      PGDATABASE: document_intelligence_smoke
+      PGUSER: smoke
+      PGPASSWORD: smoke_only
+      GEMINI_API_KEY: ""
+  frontend:
+    ports: !reset []
+  smoke:
+    build:
+      context: ./backend
+      target: test
+    command: python -m evaluation.smoke_install
