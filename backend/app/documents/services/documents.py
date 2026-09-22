@@ -7,12 +7,14 @@ from uuid import UUID, uuid4
 from sqlalchemy.orm import Session
 
 from app.documents.exceptions import (
+    DocumentContentConflict,
     DocumentNotFound,
+    DocumentPageNotFound,
     DocumentStorageUnavailable,
     EmptyDocumentFile,
     UnsupportedDocumentFile,
 )
-from app.documents.models import Document
+from app.documents.models import Document, DocumentPage
 from app.documents.repository import DocumentRepository
 from app.documents.status import DocumentStatus
 from app.documents.storage import LocalDocumentStorage
@@ -55,6 +57,27 @@ class DocumentService:
     def get(self, document_id: UUID) -> Document:
         with self._session.begin():
             return self._require_document(document_id)
+
+    def file_path(self, document_id: UUID) -> Path:
+        with self._session.begin():
+            document = self._require_document(document_id)
+            if document.status in (
+                DocumentStatus.METADATA_ONLY,
+                DocumentStatus.DELETING,
+            ):
+                raise DocumentContentConflict
+        # Aucune transaction SQL pendant le contrôle disque ou le transfert HTTP.
+        return self._storage.file_path(document_id)
+
+    def get_page(self, document_id: UUID, page_number: int) -> DocumentPage:
+        with self._session.begin():
+            document = self._require_document(document_id)
+            if document.status == DocumentStatus.DELETING:
+                raise DocumentContentConflict
+            page = self._repository.get_page(document_id, page_number)
+            if page is None:
+                raise DocumentPageNotFound
+            return page
 
     def delete(self, document_id: UUID) -> None:
         with self._session.begin():

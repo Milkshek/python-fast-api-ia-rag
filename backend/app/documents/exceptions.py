@@ -43,3 +43,11 @@ class DocumentIndexingConflict(Exception):
 
 class DocumentSearchConflict(Exception):
     pass
+
+
+class DocumentContentConflict(Exception):
+    pass
+
+
+class DocumentPageNotFound(Exception):
+    pass

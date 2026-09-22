@@ -1,4 +1,5 @@
 import logging
+import stat
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -49,6 +50,16 @@ class LocalDocumentStorage:
                 yield source
         except OSError as error:
             raise DocumentStorageUnavailable from error
+
+    def file_path(self, document_id: UUID) -> Path:
+        """Chemin contrôlé pour FileResponse ; rejette aussi les liens symboliques."""
+        path = self._path(document_id)
+        try:
+            if not stat.S_ISREG(path.lstat().st_mode):
+                raise DocumentStorageUnavailable
+        except OSError as error:
+            raise DocumentStorageUnavailable from error
+        return path
 
     def delete(self, document_id: UUID) -> None:
         try:

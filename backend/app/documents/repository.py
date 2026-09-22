@@ -56,6 +56,9 @@ class DocumentRepository:
             .limit(limit)
         ).all()
 
+    def get_page(self, document_id: UUID, page_number: int) -> DocumentPage | None:
+        return self._session.get(DocumentPage, (document_id, page_number))
+
     def all_pages(self, document_id: UUID) -> Sequence[DocumentPage]:
         return self._session.scalars(
             select(DocumentPage)
