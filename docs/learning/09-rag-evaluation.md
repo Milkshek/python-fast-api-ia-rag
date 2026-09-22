@@ -8,9 +8,9 @@ un UUID existant ne suffisent pas à le prouver.
 
 ## Corpus reproductible
 
-`evaluation/corpus.json` contient trois documents entièrement fictifs, six pages
+`backend/evaluation/corpus.json` contient trois documents entièrement fictifs, six pages
 chacun, et dix questions : huit réponses attendues et deux abstentions.
-Les PDF sont générés en mémoire par `evaluation/run.py` ; aucun fichier personnel
+Les PDF sont générés en mémoire par `backend/evaluation/run.py` ; aucun fichier personnel
 n'est transmis. Les pages et les attendus sont lisibles dans le JSON versionné.
 
 Les cas couvrent :
@@ -108,7 +108,7 @@ comportement peut être vérifié de manière déterministe.
 
 ## Lecture et questions
 
-Relire `evaluation/corpus.json`, `evaluation/run.py`, `tests/test_evaluation.py`,
+Relire `backend/evaluation/corpus.json`, `backend/evaluation/run.py`, `backend/tests/test_evaluation.py`,
 puis le bilan dans `docs/evaluation/` lorsqu'il est disponible.
 
 1. Pourquoi les tests avec un fournisseur simulé ne suffisent-ils pas à évaluer la

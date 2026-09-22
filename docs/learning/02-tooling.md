@@ -17,7 +17,7 @@ données reçues à l'exécution. Aucun des deux ne remplace les tests de transa
 
 ## Dépendances directes et transitives
 
-`requirements.in` décrit nos besoins applicatifs. `requirements-dev.in` ajoute
+`backend/requirements.in` décrit nos besoins applicatifs. `backend/requirements-dev.in` ajoute
 les outils et clients de test, avec une contrainte sur le lock applicatif pour
 utiliser les mêmes versions. `make lock` génère les deux fichiers `.txt`.
 
@@ -35,11 +35,11 @@ verrouillés, pas l'intégralité des binaires du système.
 ```sh
 make format        # Modifie le format et trie les imports
 make lint          # Vérifie le lint et le format sans modification
-make typecheck     # Vérifie app/ en mode strict
+make typecheck     # Vérifie backend/app/ en mode strict
 make quality       # Lint, types, puis tests avec PostgreSQL isolé
 ```
 
-Ruff couvre `app/`, `tests/` et `migrations/`. Mypy strict couvre `app/` ; les tests
+Ruff couvre `backend/app/`, `backend/tests/` et `backend/migrations/`. Mypy strict couvre `backend/app/` ; les tests
 et migrations ne sont pas encore inclus dans son périmètre. Un contrôle vert ne
 garantit pas l'absence de défaut, il vérifie uniquement ses règles et son périmètre.
 
@@ -65,7 +65,7 @@ utilise toujours une base séparée de celle du développement.
 
 Starlette recommande `httpx2` pour son TestClient. Sa version 1.6 utilise encore un
 alias AnyIO déprécié dans la série 4.15 ; la borne temporaire `anyio<4.15` est
-explicitée dans `requirements.in`. La retirer lorsque Starlette corrige cet appel,
+explicitée dans `backend/requirements.in`. La retirer lorsque Starlette corrige cet appel,
 puis régénérer et vérifier les locks. Pytest traite les avertissements comme des
 erreurs, sans filtre destiné à cacher ces dépréciations.
 

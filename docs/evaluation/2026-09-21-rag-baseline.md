@@ -3,7 +3,7 @@
 Campagne finale : `rag-20260921T092350-f986e1f3.json`. Relecture du contenu et des sources par Codex ;
 ce bilan ne constitue pas une validation pédagogique de l’apprenant.
 
-Corpus : [corpus.json](../../evaluation/corpus.json), trois PDF synthétiques à six
+Corpus : [corpus.json](../../backend/evaluation/corpus.json), trois PDF synthétiques à six
 pages. Empreinte SHA-256 : `6ec7d79c082521c3a810eea2d47b1554851d419462217f560b974c58d646cf25`.
 
 Modèles : `gemini-embedding-2` (768 dimensions) et `gemini-3.1-flash-lite`.

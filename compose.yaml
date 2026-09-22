@@ -23,7 +23,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ./backend
       target: runtime
     init: true
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -38,9 +38,9 @@ services:
       PGUSER: ${POSTGRES_USER:-document_intelligence}
       PGPASSWORD: ${POSTGRES_PASSWORD:?Copier .env.example vers .env}
     volumes:
-      - ./app:/workspace/app:ro
-      - ./alembic.ini:/workspace/alembic.ini:ro
-      - ./migrations:/workspace/migrations:ro
+      - ./backend/app:/workspace/app:ro
+      - ./backend/alembic.ini:/workspace/alembic.ini:ro
+      - ./backend/migrations:/workspace/migrations:ro
       - document_files:/data/documents
     depends_on:
       db:
@@ -54,8 +54,8 @@ services:
 
   db:
     build:
-      context: .
-      dockerfile: docker/postgres.Dockerfile
+      context: ./docker
+      dockerfile: postgres.Dockerfile
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:

@@ -3,8 +3,8 @@ name: document-intelligence-tests
 services:
   db-test:
     build:
-      context: .
-      dockerfile: docker/postgres.Dockerfile
+      context: ./docker
+      dockerfile: postgres.Dockerfile
     environment:
       POSTGRES_DB: document_intelligence_test
       POSTGRES_USER: test
@@ -23,7 +23,7 @@ services:
       python -m pytest -q -p no:cacheprovider &&
       alembic downgrade base && alembic upgrade head && alembic check'
     build:
-      context: .
+      context: ./backend
       target: test
     environment:
       PGHOST: db-test

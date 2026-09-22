@@ -11,7 +11,7 @@ services:
 
   tools:
     build:
-      context: .
+      context: ./backend
       target: test
     working_dir: /workspace
     environment:
@@ -19,4 +19,4 @@ services:
       MYPY_CACHE_DIR: /tmp/mypy
       RUFF_CACHE_DIR: /tmp/ruff
     volumes:
-      - .:/workspace
+      - ./backend:/workspace

@@ -16,12 +16,12 @@ Le score illustré est une similarité, pas une probabilité de réponse correct
 
 ## Fichiers à relire
 
-1. `app/documents/routes/search.py` : contrat HTTP et traduction des erreurs.
-2. `app/documents/schemas/search.py` : validation et structure de réponse.
-3. `app/documents/services/search.py` : orchestration et vérifications.
-4. `app/ai/embeddings.py` : `embed_query()` et appel Gemini.
-5. `app/documents/repository.py` : `search_chunks()` et requête pgvector.
-6. `tests/test_search.py` : classement réel en PostgreSQL et erreurs.
+1. `backend/app/documents/routes/search.py` : contrat HTTP et traduction des erreurs.
+2. `backend/app/documents/schemas/search.py` : validation et structure de réponse.
+3. `backend/app/documents/services/search.py` : orchestration et vérifications.
+4. `backend/app/ai/embeddings.py` : `embed_query()` et appel Gemini.
+5. `backend/app/documents/repository.py` : `search_chunks()` et requête pgvector.
+6. `backend/tests/test_search.py` : classement réel en PostgreSQL et erreurs.
 
 ## Flux de la recherche
 

@@ -68,7 +68,7 @@ d'un document entraîne celle des pages, puis des chunks par cascade SQL.
 3. `repository.py` : SQL ordonné et ajout des chunks, aucun commit.
 4. `models.py` et migration 0004 : intégrité, unicité et cascade.
 5. `router.py` et `schemas.py` : contrats HTTP et pagination.
-6. `tests/test_text_chunker.py` et tests de parcours/pannes : frontières et garanties.
+6. `backend/tests/test_text_chunker.py` et tests de parcours/pannes : frontières et garanties.
 
 Le service expose le déroulé et nomme les opérations internes `_build_chunks()`
 et `_publish_chunks()`. Le chunker reste indépendant de SQL et peut être testé

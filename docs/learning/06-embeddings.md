@@ -38,7 +38,7 @@ volume n'aide pas l'utilisateur du produit. Elles sont stockées en base et test
 1. `router.py` : HTTP et traduction des erreurs.
 2. `dependencies.py` : clé d'environnement, client HTTP fermé via yield/with.
 3. `services/indexing.py` : lecture des chunks, calcul distant, publication atomique.
-4. `app/ai/embeddings.py` : protocole Gemini, contrôle de la réponse et normalisation.
+4. `backend/app/ai/embeddings.py` : protocole Gemini, contrôle de la réponse et normalisation.
 5. `repository.py`, `models.py`, migration 0005 : vecteurs persistés et cascade.
 
 Le service utilise un client Gemini concret, pas un framework RAG ou une interface
@@ -133,7 +133,7 @@ Sources : [Gemini embeddings](https://ai.google.dev/gemini-api/docs/embeddings),
 
 ## Organisation des routes HTTP
 
-`app/documents/router.py` assemble les `APIRouter` avec `include_router()` :
+`backend/app/documents/router.py` assemble les `APIRouter` avec `include_router()` :
 
 - `routes/documents.py` : création, upload, liste, lecture et suppression ;
 - `routes/processing.py` : extraction et lecture des pages, découpage et lecture

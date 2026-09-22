@@ -20,13 +20,13 @@ pas que le document est prêt à répondre à des questions.
 
 ## Ordre de lecture
 
-1. `app/documents/routes/documents.py` : formulaire HTTP, validation, réponses d'erreur.
-2. `app/documents/dependencies.py` : stockage concret et session injectés au service.
-3. `app/documents/services/documents.py` : upload, compensation et suppression reprenable.
-4. `app/documents/storage.py` : copie par blocs, fichier temporaire, suppression.
-5. `app/documents/status.py`, `models.py` et `schemas.py` : état persisté et exposé.
-6. `migrations/versions/0002_document_upload.py` : adaptation des documents existants.
-7. `tests/test_uploads.py`, `test_upload_failures.py` et `test_document_migration.py`.
+1. `backend/app/documents/routes/documents.py` : formulaire HTTP, validation, réponses d'erreur.
+2. `backend/app/documents/dependencies.py` : stockage concret et session injectés au service.
+3. `backend/app/documents/services/documents.py` : upload, compensation et suppression reprenable.
+4. `backend/app/documents/storage.py` : copie par blocs, fichier temporaire, suppression.
+5. `backend/app/documents/status.py`, `models.py` et `schemas.py` : état persisté et exposé.
+6. `backend/migrations/versions/0002_document_upload.py` : adaptation des documents existants.
+7. `backend/tests/test_uploads.py`, `test_upload_failures.py` et `test_document_migration.py`.
 
 ## Flux de l'upload
 

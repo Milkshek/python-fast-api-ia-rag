@@ -3,6 +3,20 @@
 Projet de formation Python, FastAPI et IA décrit dans
 [le programme](document-intelligence-training.md).
 
+## Organisation du dépôt
+
+- `backend/` : application Python, migrations, tests, corpus d’évaluation,
+  dépendances et Dockerfile de l’API.
+- `frontend/` : application React/TypeScript et ses outils.
+- `docker/` : image PostgreSQL avec pgvector.
+- `docs/` : guides et bilans ; `reports/` : rapports locaux ignorés.
+- À la racine : Compose, Makefile et `.env` orchestrent les deux applications.
+
+Les commandes `make` s’exécutent depuis la racine. Pour lancer les outils Python
+hors Docker, se placer dans `backend/` avec les dépendances et variables nécessaires.
+Dans les conteneurs Python, ce dossier est toujours `/workspace` : les imports
+`from app...` et les commandes Alembic restent identiques.
+
 ## Démarrage local
 
 Prérequis : Docker avec Compose v2 ou supérieur, moteur Docker démarré, et `make`.
@@ -54,7 +68,7 @@ make quality          # Vérifications backend et frontend
 depuis la machine hôte : `curl --fail http://localhost:8000/health`.
 Les cibles du Makefile exécutent les commandes `docker compose` correspondantes.
 
-Le code de `app/` est monté dans le conteneur : Uvicorn recharge l'application
+Le code de `backend/app/` est monté dans le conteneur : Uvicorn recharge l'application
 après une modification. Après une modification des dépendances ou du Dockerfile,
 relancer `make up`. `make restart` ne reconstruit pas les images et n'applique pas
 les changements de configuration Compose ou de variables d'environnement.
@@ -78,7 +92,7 @@ service devenu indisponible.
 Ce socle est destiné au développement local. Le serveur Vite sert au développement ;
 il ne constitue pas un hébergement de production. Les dépendances
 Python sont verrouillées avec leurs dépendances transitives et hashes dans les
-fichiers requirements.txt et requirements-dev.txt (Linux / Python 3.13).
+fichiers backend/requirements.txt et backend/requirements-dev.txt (Linux / Python 3.13).
 
 ## API Documents
 
@@ -122,13 +136,13 @@ la pagination, le commit et l'annulation des transactions inachevées.
 Elle vérifie aussi l'alignement modèle/migration et un aller-retour des migrations.
 Les conteneurs de test sont retirés à la fin, même en cas d'échec.
 Pytest traite les avertissements comme des erreurs. Les contraintes temporaires
-de compatibilité sont expliquées dans requirements.in et le guide J3.
+de compatibilité sont expliquées dans backend/requirements.in et le guide J3.
 Ne pas lancer deux `make test` en parallèle : ils partagent le même projet de test.
 
 Les fixtures refusent de nettoyer une base autre que `document_intelligence_test`
 sur `db-test`. La base de développement n'est jamais visée par ces tests.
 
-Les migrations sont versionnées dans `migrations/versions/`. La création des
+Les migrations sont versionnées dans `backend/migrations/versions/`. La création des
 tables passe par Alembic, jamais par `create_all()` au démarrage de l'application.
 Après une nouvelle migration : `make migrate` (ou `make up`).
 
@@ -136,9 +150,9 @@ Guide pédagogique : [lecture du socle Documents](docs/learning/01-documents-api
 
 ## Repères de lecture
 
-- `Dockerfile` construit l'image Python et exécute l'API avec un utilisateur non root.
+- `backend/Dockerfile` construit l'image Python et exécute l'API avec un utilisateur non root.
 - `compose.yaml` assemble les services, le réseau, les contrôles de santé et le volume.
-- `app/main.py` fournit le serveur minimal nécessaire pour vérifier le démarrage.
+- `backend/app/main.py` fournit le serveur minimal nécessaire pour vérifier le démarrage.
 
 À la relecture : pourquoi l'API utilise-t-elle `db` pour joindre PostgreSQL ?
 Quelle différence entre le montage du code et le volume de données ?
@@ -152,7 +166,7 @@ et [image officielle PostgreSQL](https://hub.docker.com/_/postgres).
 ```sh
 make format        # Formater et trier les imports
 make lint          # Contrôler le lint et le format
-make typecheck     # Mypy strict sur app/
+make typecheck     # Mypy strict sur backend/app/
 make quality       # Lint + types + tests
 make lock          # Résoudre après modification des .in
 make lock LOCK_ARGS=--upgrade # Actualiser les versions compatibles
@@ -311,7 +325,7 @@ Après `make up`, lancer `make evaluate` pour importer trois PDF fictifs et pose
 dix questions au véritable Gemini. Cette commande consomme le quota du projet
 configuré ; elle ne fait pas partie de `make quality`.
 
-Le corpus versionné se trouve dans `evaluation/corpus.json`. Chaque exécution
+Le corpus versionné se trouve dans `backend/evaluation/corpus.json`. Chaque exécution
 écrit un rapport local `reports/rag-*.json` (ignoré par Git), puis supprime uniquement
 les documents créés pour cet essai. Les erreurs de nettoyage sont consignées.
 Un quota atteint arrête la campagne sans retry automatique.

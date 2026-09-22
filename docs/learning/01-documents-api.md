@@ -6,16 +6,16 @@ un prérequis dans le périmètre actuel d'AGENTS.md.
 
 ## Ordre de lecture
 
-1. `app/documents/schemas/documents.py` : les données acceptées et retournées par l'API.
-2. `app/documents/models.py` : leur représentation persistante dans PostgreSQL.
-3. `app/database/session.py` : création du moteur et session par requête.
-4. `app/documents/routes/documents.py` : contrat HTTP et traduction des erreurs métier.
-5. `app/documents/dependencies.py` : construction du service avec la session injectée.
-6. `app/documents/services/documents.py` : cas d’usage et transactions.
-7. `app/documents/repository.py` : requêtes SQLAlchemy sans commit.
-8. `migrations/versions/0001_documents.py` : évolution versionnée du schéma.
-9. `tests/test_documents.py` : comportements HTTP attendus.
-10. `tests/test_document_layers.py` : intégration du repository et du service avec PostgreSQL.
+1. `backend/app/documents/schemas/documents.py` : les données acceptées et retournées par l'API.
+2. `backend/app/documents/models.py` : leur représentation persistante dans PostgreSQL.
+3. `backend/app/database/session.py` : création du moteur et session par requête.
+4. `backend/app/documents/routes/documents.py` : contrat HTTP et traduction des erreurs métier.
+5. `backend/app/documents/dependencies.py` : construction du service avec la session injectée.
+6. `backend/app/documents/services/documents.py` : cas d’usage et transactions.
+7. `backend/app/documents/repository.py` : requêtes SQLAlchemy sans commit.
+8. `backend/migrations/versions/0001_documents.py` : évolution versionnée du schéma.
+9. `backend/tests/test_documents.py` : comportements HTTP attendus.
+10. `backend/tests/test_document_layers.py` : intégration du repository et du service avec PostgreSQL.
 
 ## Chemin d'un POST
 

@@ -18,11 +18,11 @@ ne remplacent pas les UUID persistants des chunks.
 
 ## Lecture conseillée
 
-1. `app/documents/routes/answers.py` : HTTP et traduction des erreurs.
-2. `app/documents/services/answers.py` : orchestration RAG, contexte et citations.
-3. `app/ai/answers.py` : prompt, appel REST Gemini et validation de sortie.
-4. `app/documents/schemas/answers.py` : modèles d'entrée/sortie HTTP.
-5. `tests/test_answers.py`, `tests/test_answer_client.py` : garanties testées.
+1. `backend/app/documents/routes/answers.py` : HTTP et traduction des erreurs.
+2. `backend/app/documents/services/answers.py` : orchestration RAG, contexte et citations.
+3. `backend/app/ai/answers.py` : prompt, appel REST Gemini et validation de sortie.
+4. `backend/app/documents/schemas/answers.py` : modèles d'entrée/sortie HTTP.
+5. `backend/tests/test_answers.py`, `backend/tests/test_answer_client.py` : garanties testées.
 
 ## Flux visible du premier RAG
 
