@@ -98,7 +98,7 @@ fichiers backend/requirements.txt et backend/requirements-dev.txt (Linux / Pytho
 
 L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
 L’indexation Gemini, la recherche sémantique et les réponses sourcées sont disponibles.
-Les conversations persistées et l’authentification ne sont pas encore implémentées.
+Les conversations persistées sont disponibles ; l’authentification reste hors périmètre.
 
 | Méthode | Chemin | Résultat |
 | --- | --- | --- |
@@ -358,5 +358,36 @@ Après modification de la configuration ou des dépendances, relancer `make up`.
 `package.json` décrit les contraintes npm ; `package-lock.json` verrouille l’arbre
 installé par `npm ci`. Aucun Node.js local n’est nécessaire.
 
-Cette étape couvre les documents ; les conversations et l’affichage des réponses
-sourcées seront ajoutés en J12/J13. Voir [le guide J11](docs/learning/10-react-documents.md).
+Le panneau Conversations permet maintenant de poser des questions et de consulter
+les réponses et extraits sources enregistrés. L’ouverture du PDF à la page citée
+reste prévue en J13. Voir [le guide J11](docs/learning/10-react-documents.md).
+
+
+## Conversations persistées (J12)
+
+Après `make up` (migration incluse), sélectionner un document indexé dans React,
+cliquer sur « Nouvelle conversation », puis envoyer une question. Les conversations
+et échanges se retrouvent après rechargement en sélectionnant à nouveau le document
+et la conversation. Les listes sont paginées.
+
+| Méthode | Chemin | Résultat |
+| --- | --- | --- |
+| POST | `/conversations` | Créer avec `{ "document_id": "UUID" }` ; document indexé requis |
+| GET | `/conversations?document_id=UUID` | Lister, plus récentes d’abord (`limit`/`offset`) |
+| GET | `/conversations/{id}` | Métadonnées d’une conversation |
+| GET | `/conversations/{id}/messages` | Échanges par séquence croissante (`limit`/`offset`) |
+| POST | `/conversations/{id}/messages` | Poser `{ "question": "Quel délai ?" }` et enregistrer l’échange complet |
+
+Un échange contient la question, la réponse, l’indication d’abstention et un
+instantané des sources utilisées (page, extrait et positions). Gemini est appelé
+hors transaction ; l’écriture finale est atomique. Les erreurs fournisseur ne
+créent pas d’échange incomplet. Une perte de réponse HTTP après commit reste
+possible : recharger l’historique avant de renvoyer, sans retry automatique.
+
+Chaque question est indépendante : **l’historique stocké n’est pas transmis au
+LLM**. Les relances implicites ne sont pas encore prises en charge. Supprimer un
+document supprime également ses conversations et leurs échanges. L’affichage des
+sources est textuel ; la navigation dans le PDF appartient à J13.
+
+Voir [le guide J12](docs/learning/11-conversations.md) pour les transactions,
+l’historique, les instantanés JSONB et les questions de compréhension.
