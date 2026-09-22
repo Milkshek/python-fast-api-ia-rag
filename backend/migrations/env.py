@@ -1,5 +1,6 @@
 from alembic import context
 
+from app.conversations.models import Conversation  # noqa: F401 — enregistre les tables
 from app.database.session import Base, engine
 from app.documents.models import Document  # noqa: F401 — enregistre la table
 

@@ -1,0 +1,2 @@
+class ConversationNotFound(Exception):
+    pass
