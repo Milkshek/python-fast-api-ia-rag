@@ -648,3 +648,69 @@ summary:focus-visible {
     margin-left: 12px;
   }
 }
+
+.source-dialog {
+  border: 1px solid #dbe1d7;
+  border-radius: 16px;
+  color: #243f38;
+  background: #fff;
+  width: min(800px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 28px;
+  overflow: auto;
+}
+.source-dialog::backdrop {
+  background: rgb(20 40 30 / 55%);
+}
+.source-dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.source-dialog-heading h2 {
+  margin: 4px 0;
+}
+.source-page-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.8;
+  padding: 24px;
+  margin-top: 20px;
+  background: #fafaf6;
+  border: 1px solid #e0e5d8;
+  border-radius: 8px;
+}
+.source-page-text mark {
+  background: #fff0ac;
+  color: #3d3b22;
+}
+.source-warning {
+  padding: 12px;
+  background: #fff5df;
+  border: 1px solid #ead8ac;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.pdf-link {
+  display: inline-block;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 10px;
+}
+.source-page-button {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .source-dialog {
+    padding: 20px;
+  }
+  .source-page-text {
+    padding: 16px;
+  }
+}

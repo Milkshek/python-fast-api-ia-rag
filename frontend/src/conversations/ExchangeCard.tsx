@@ -1,6 +1,11 @@
-import type { Exchange } from './types'
+import { useState } from 'react'
+import { SourceDialog } from './SourceDialog'
+import type { Exchange, ExchangeSource } from './types'
 
 export function ExchangeCard({ exchange }: { exchange: Exchange }) {
+  const [selectedSource, setSelectedSource] = useState<ExchangeSource | null>(
+    null,
+  )
   return (
     <article className="exchange" aria-label={`Échange ${exchange.sequence}`}>
       <div className="question-bubble">
@@ -25,12 +30,25 @@ export function ExchangeCard({ exchange }: { exchange: Exchange }) {
                     · Source {source.id}
                   </span>
                   <blockquote>{source.chunk.text}</blockquote>
+                  <button
+                    className="text-button source-page-button"
+                    onClick={() => setSelectedSource(source)}
+                  >
+                    Voir la page {source.chunk.page_number}
+                  </button>
                 </li>
               ))}
             </ul>
           </details>
         )}
       </div>
+      {selectedSource && (
+        <SourceDialog
+          key={selectedSource.chunk.id}
+          source={selectedSource}
+          onClose={() => setSelectedSource(null)}
+        />
+      )}
     </article>
   )
 }
