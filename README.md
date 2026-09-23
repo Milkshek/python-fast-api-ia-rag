@@ -3,6 +3,14 @@
 Projet de formation Python, FastAPI et IA décrit dans
 [le programme](document-intelligence-training.md).
 
+Le MVP local permet d’importer des PDF contenant du texte, de les indexer et de
+les interroger depuis React avec historique et sources consultables. Une conversation
+porte sur un seul document ; les questions restent indépendantes.
+
+Pour commencer : [démonstration reproductible et limites](docs/demo/README.md).
+Le projet est un support de formation et une application locale, pas un déploiement
+production. Multi-document, tool calling et agent restent des extensions.
+
 ## Organisation du dépôt
 
 - `backend/` : application Python, migrations, tests, corpus d’évaluation,
@@ -313,8 +321,9 @@ Une source valide ne garantit pas que chaque affirmation soit correcte.
 La même clé `GEMINI_API_KEY` est utilisée, sur le projet gratuit choisi. Les quotas
 restent applicables ; seuls les 503 de génération sont réessayés dans les limites
 décrites en J14, sans fallback payant. Une sortie invalide, tronquée
-ou bloquée donne 502 ; quota 429 ; fournisseur/réseau indisponible 503. Aucune question
-ni réponse n'est encore persistée. L'évaluation sur corpus sera l'étape J10.
+ou bloquée donne 502 ; quota 429 ; fournisseur/réseau indisponible 503. Cette route directe
+ne persiste pas l’échange ; utiliser les conversations J12 pour le conserver.
+L’évaluation sur corpus est décrite en J10.
 
 Voir [le guide J9](docs/learning/08-grounded-answers.md) pour le flux RAG, le prompt,
 les sorties structurées et les limites des citations.
