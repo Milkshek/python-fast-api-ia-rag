@@ -5,7 +5,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.ai.answers import AnswerQuotaExceeded, AnswerUnavailable, InvalidAnswerResponse
+from app.ai.answers import (
+    AnswerQuotaExceeded,
+    AnswerTemporarilyUnavailable,
+    AnswerUnavailable,
+    InvalidAnswerResponse,
+)
 from app.ai.embeddings import (
     EmbeddingQuotaExceeded,
     EmbeddingUnavailable,
@@ -45,6 +50,11 @@ def map_errors() -> Iterator[None]:
     except (EmbeddingQuotaExceeded, AnswerQuotaExceeded) as error:
         raise HTTPException(
             429, "Quota Gemini atteint ; réessayer plus tard"
+        ) from error
+    except AnswerTemporarilyUnavailable as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Le modèle Gemini est temporairement indisponible. Réessayez dans quelques instants.",
         ) from error
     except (EmbeddingUnavailable, AnswerUnavailable) as error:
         raise HTTPException(

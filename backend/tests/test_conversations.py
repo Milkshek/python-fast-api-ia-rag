@@ -264,3 +264,86 @@ def test_questions_are_independent_and_abstention_is_persisted(answer_client):
     assert prompt["question"] == "CURRENT_QUESTION"
     assert "PREVIOUS_QUESTION" not in str(body)
     assert "Trois mois." not in str(body)
+
+
+@pytest.mark.parametrize("recover", [True, False])
+def test_generation_retry_does_not_replay_retrieval_or_publication(
+    monkeypatch, recover
+):
+    import httpx2 as httpx
+    from test_answer_client import response_body
+
+    from app.ai import answers as answer_module
+    from app.ai.answers import AnswerTemporarilyUnavailable, GeminiAnswerClient
+    from app.ai.embeddings import GeminiEmbeddingClient
+    from app.conversations.service import ConversationService
+    from app.documents.services.answers import DocumentAnswerService
+    from app.documents.services.search import DocumentSearchService
+
+    identifier = indexed_document([vector(1.0, 0.0)])
+    calls = {"embedding": 0, "generation": 0}
+    with SessionFactory() as session:
+
+        def wait(seconds):
+            assert not session.in_transaction()
+
+        monkeypatch.setattr(answer_module, "sleep", wait)
+
+        def respond(request):
+            assert not session.in_transaction()
+            if request.url.path.endswith(":embedContent"):
+                calls["embedding"] += 1
+                return httpx.Response(
+                    200, json={"embedding": {"values": vector(1.0, 0.0)}}
+                )
+            calls["generation"] += 1
+            if recover and calls["generation"] == 3:
+                return httpx.Response(200, json=response_body())
+            return httpx.Response(503)
+
+        with httpx.Client(transport=httpx.MockTransport(respond)) as http:
+            service = ConversationService(
+                session,
+                DocumentAnswerService(
+                    session,
+                    DocumentSearchService(session, GeminiEmbeddingClient("key", http)),
+                    GeminiAnswerClient("key", http),
+                ),
+            )
+            conversation = service.create(identifier)
+            if recover:
+                message = service.ask(conversation.id, question="Préavis ?")
+                assert message.sequence == 1
+            else:
+                with pytest.raises(AnswerTemporarilyUnavailable):
+                    service.ask(conversation.id, question="Préavis ?")
+            assert len(
+                service.list_messages(conversation.id, limit=20, offset=0)
+            ) == int(recover)
+    assert calls == {"embedding": 1, "generation": 3}
+
+
+@pytest.mark.parametrize("conversation_route", [True, False])
+def test_saturation_has_specific_http_message(
+    answer_client, monkeypatch, conversation_route
+):
+    from app.ai import answers
+
+    monkeypatch.setattr(answers, "sleep", lambda seconds: None)
+    client, state, calls = answer_client
+    identifier = indexed_document([vector(1.0, 0.0)])
+    if conversation_route:
+        conversation = create_conversation(client, identifier)
+        path = f"/conversations/{conversation['id']}/messages"
+    else:
+        path = f"/documents/{identifier}/ask"
+    state["status"] = 503
+    response = client.post(path, json={"question": "Q"})
+    assert response.status_code == 503
+    assert (
+        response.json()["detail"]
+        == "Le modèle Gemini est temporairement indisponible. Réessayez dans quelques instants."
+    )
+    assert len(calls) == 3
+    if conversation_route:
+        assert client.get(path).json() == []

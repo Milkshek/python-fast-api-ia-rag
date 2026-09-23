@@ -124,36 +124,56 @@ describe('Conversations', () => {
     ).toBe(true)
   })
 
-  it('keeps the question and releases controls after a quota error', async () => {
-    const onSending = vi.fn()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string, init?: RequestInit) =>
-        init?.method === 'POST'
-          ? json({ detail: 'Quota Gemini atteint' }, 429)
-          : json(url.includes('/messages') ? [] : [conversation]),
-      ),
-    )
-    render(
-      <ConversationPanel documentId="document-1" onSendingChange={onSending} />,
-    )
-    const user = await openConversation()
-    await user.type(
-      await screen.findByLabelText('Votre question'),
-      'Quel délai ?',
-    )
-    await user.click(
-      screen.getByRole('button', { name: 'Envoyer la question' }),
-    )
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Quota Gemini atteint',
-    )
-    expect(screen.getByLabelText('Votre question')).toHaveValue('Quel délai ?')
-    expect(
-      screen.getByRole('button', { name: 'Envoyer la question' }),
-    ).toBeEnabled()
-    expect(onSending.mock.calls.map(([value]) => value)).toEqual([true, false])
-  })
+  it.each([
+    [429, 'Quota Gemini atteint'],
+    [
+      503,
+      'Le modèle Gemini est temporairement indisponible. Réessayez dans quelques instants.',
+    ],
+  ])(
+    'keeps the question without resending after HTTP %s',
+    async (status, message) => {
+      const onSending = vi.fn()
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((url: string, init?: RequestInit) =>
+          init?.method === 'POST'
+            ? json({ detail: message }, status)
+            : json(url.includes('/messages') ? [] : [conversation]),
+        ),
+      )
+      render(
+        <ConversationPanel
+          documentId="document-1"
+          onSendingChange={onSending}
+        />,
+      )
+      const user = await openConversation()
+      await user.type(
+        await screen.findByLabelText('Votre question'),
+        'Quel délai ?',
+      )
+      await user.click(
+        screen.getByRole('button', { name: 'Envoyer la question' }),
+      )
+      expect(await screen.findByRole('alert')).toHaveTextContent(message)
+      expect(
+        vi
+          .mocked(fetch)
+          .mock.calls.filter(([, init]) => init?.method === 'POST'),
+      ).toHaveLength(1)
+      expect(screen.getByLabelText('Votre question')).toHaveValue(
+        'Quel délai ?',
+      )
+      expect(
+        screen.getByRole('button', { name: 'Envoyer la question' }),
+      ).toBeEnabled()
+      expect(onSending.mock.calls.map(([value]) => value)).toEqual([
+        true,
+        false,
+      ])
+    },
+  )
 
   it('retries loading history without sending a question', async () => {
     let fail = true
