@@ -1,436 +1,153 @@
 # Document Intelligence Assistant
 
-Projet de formation Python, FastAPI et IA décrit dans
-[le programme](document-intelligence-training.md).
+Une application locale pour importer des PDF, les interroger en langage naturel
+et consulter les passages utilisés dans les réponses.
 
-Le MVP local permet d’importer des PDF contenant du texte, de les indexer et de
-les interroger depuis React avec historique et sources consultables. Une conversation
-porte sur un seul document ; les questions restent indépendantes.
+Construite avec **Python / FastAPI, React / TypeScript, PostgreSQL / pgvector et
+Gemini**, dans le cadre d’un projet de formation à l’IA appliquée. Le MVP couvre
+le parcours complet, de l’import du document à la réponse sourcée.
 
-Pour commencer : [démonstration reproductible et limites](docs/demo/README.md).
-Le projet est un support de formation et une application locale, pas un déploiement
-production. Multi-document, tool calling et agent restent des extensions.
+[Démo pas à pas](docs/demo/README.md) · [API](docs/api.md) · [Développement](docs/development.md) · [Guides techniques](docs/README.md)
 
-## Organisation du dépôt
+## Fonctionnalités
 
-- `backend/` : application Python, migrations, tests, corpus d’évaluation,
-  dépendances et Dockerfile de l’API.
-- `frontend/` : application React/TypeScript et ses outils.
-- `docker/` : image PostgreSQL avec pgvector.
-- `docs/` : guides et bilans ; `reports/` : rapports locaux ignorés.
-- À la racine : Compose, Makefile et `.env` orchestrent les deux applications.
+- Import de PDF contenant du texte, avec stockage persistant des fichiers.
+- Extraction par page, découpage en passages et indexation vectorielle.
+- Recherche sémantique limitée au document sélectionné.
+- Réponses générées à partir des passages retrouvés, avec sources consultables.
+- Historique des conversations, affichage des pages et surlignage des citations.
+- Gestion des erreurs et reprise limitée des indisponibilités de génération Gemini.
 
-Les commandes `make` s’exécutent depuis la racine. Pour lancer les outils Python
-hors Docker, se placer dans `backend/` avec les dépendances et variables nécessaires.
-Dans les conteneurs Python, ce dossier est toujours `/workspace` : les imports
-`from app...` et les commandes Alembic restent identiques.
+Une conversation porte sur **un seul document**. Les questions sont indépendantes :
+l’historique est enregistré, mais n’est pas transmis au modèle.
 
-## Démarrage local
+## Démarrage rapide
 
-Prérequis : Docker avec Compose v2 ou supérieur, moteur Docker démarré, et `make`.
-Depuis la racine du dépôt :
+**Prérequis :** Docker avec Compose v2 récent, moteur Docker démarré, `make` et une
+clé API Gemini pour l’indexation et les réponses. Aucun Python, Node.js ou LLM à
+installer sur la machine hôte.
+
+```sh
+git clone https://github.com/Milkshek/python-fast-api-ia-rag.git
+cd python-fast-api-ia-rag
+make init
+```
+
+Renseigner `GEMINI_API_KEY` dans le fichier `.env` créé, puis démarrer :
 
 ```sh
 make up
 ```
 
-`make up` crée `.env` à partir de `.env.example` uniquement s'il n'existe pas,
-puis construit et démarre les services et applique les migrations Alembic.
-Les réglages locaux sont conservés.
-Les identifiants d'exemple sont destinés au développement.
+Cette commande construit les images, attend les services et applique les migrations.
+Elle conserve les réglages et données existants.
 
-| Service | Accès | Rôle |
-| --- | --- | --- |
-| `frontend` | http://localhost:5173 | React / TypeScript, bibliothèque de PDF |
-| `api` | http://localhost:8000/docs | FastAPI et documentation interactive |
-| `db` | localhost:5432 | PostgreSQL 17, stockage persistant |
+| Service | Adresse par défaut |
+| --- | --- |
+| Application React | [localhost:5173](http://localhost:5173) |
+| Documentation interactive de l’API | [localhost:8000/docs](http://localhost:8000/docs) |
+| PostgreSQL | `localhost:5432` |
 
-La route http://localhost:8000/health retourne `{"status":"ok"}`.
-Elle vérifie uniquement le serveur HTTP. L'API Documents utilise PostgreSQL ;
-`make health` vérifie également l'accès SQL.
+Dans l’interface : **importer → extraire → découper → indexer → créer une conversation
+→ poser une question**. Le [guide de démonstration](docs/demo/README.md) fournit un
+PDF synthétique reproductible et deux questions pour essayer le parcours.
 
-## Commandes utiles
+La clé reste côté backend et `.env` est ignoré par Git. L’indexation transmet le
+texte des passages à Google ; les questions et le contexte sélectionné sont également
+transmis pour générer les réponses. L’offre et les quotas dépendent du compte Gemini ;
+l’application ne vérifie pas sa facturation et n’utilise aucun fallback payant.
 
-`make` ou `make help` affiche les commandes disponibles.
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Preparation[Préparation du document]
+        PDF[PDF] --> Pages[Extraction par page]
+        Pages --> Chunks[Découpage en passages]
+        Chunks --> Embeddings[Embeddings Gemini]
+        Embeddings --> Store[(PostgreSQL / pgvector)]
+    end
+    subgraph Question[Réponse à une question]
+        React[Question depuis React] --> Vector[Embedding de la question]
+        Vector --> Search[Recherche dans le document]
+        Store --> Search
+        Search --> Context[Passages sélectionnés + question]
+        Context --> LLM[Génération Gemini]
+        LLM --> Validation[Validation de la réponse et des sources]
+        Validation --> Result[Échange persisté et affiché dans React]
+    end
+```
+
+Le backend suit la séparation **router / service / repository** : HTTP au router,
+cas d’usage et transactions au service, requêtes SQLAlchemy au repository.
+Les appels Gemini ont lieu hors transaction SQL ; l’échange est enregistré
+atomiquement après validation. Les PDF sont conservés dans un volume distinct.
+
+```text
+backend/
+  app/          API, documents, conversations, clients IA et base de données
+  migrations/   Migrations Alembic
+  tests/        Tests pytest
+  evaluation/   Corpus et évaluation réelle du RAG
+frontend/
+  src/          Interface React et tests de composants
+Docker, Compose et Makefile à la racine ; image PostgreSQL dans docker/
+docs/           Démonstration, référence et guides d’apprentissage
+```
+
+## Tests et qualité
 
 ```sh
-make up               # Construire et démarrer, attendre les services sains
-make down             # Arrêter et retirer les conteneurs, conserver les données
-make restart          # Redémarrer les conteneurs existants
-make build            # Construire les images uniquement
-make ps               # État des services
-make logs             # Suivre les 100 dernières lignes puis les nouveaux logs
-make logs SERVICE=api # Logs du backend uniquement
-make shell            # Shell dans le backend
-make db-shell         # Console PostgreSQL
-make check            # Valider la configuration Compose
-make health           # Vérifier HTTP interne et une requête SQL
-make migrate          # Appliquer les migrations restantes
-make test             # Tests et migrations sur PostgreSQL isolé
-make frontend-check   # ESLint, Prettier, TypeScript, build Vite, tests React
-make frontend-format  # Formater le frontend avec Prettier
-make quality          # Vérifications backend et frontend
+make quality        # Ruff, mypy, pytest, ESLint, TypeScript, build et tests React
+make smoke-install  # Installation isolée sur une base vide, puis nettoyage
+make evaluate       # Évaluation RAG avec Gemini réel : consomme du quota
 ```
 
-`make health` nécessite des services démarrés. Pour vérifier aussi l'accès HTTP
-depuis la machine hôte : `curl --fail http://localhost:8000/health`.
-Les cibles du Makefile exécutent les commandes `docker compose` correspondantes.
-
-Le code de `backend/app/` est monté dans le conteneur : Uvicorn recharge l'application
-après une modification. Après une modification des dépendances ou du Dockerfile,
-relancer `make up`. `make restart` ne reconstruit pas les images et n'applique pas
-les changements de configuration Compose ou de variables d'environnement.
-
-## Configuration et persistance
-
-`.env` est ignoré par Git. `API_PORT`, `POSTGRES_PORT` et `FRONTEND_PORT` permettent de changer
-les ports locaux s'ils sont déjà occupés. Les ports internes restent 8000, 5432 et 5173.
-Depuis un conteneur, PostgreSQL est joignable sous le nom `db`, pas `localhost`.
-Les variables `PG*` du service API configurent la connexion SQLAlchemy/psycopg.
-
-Le volume `postgres_data` conserve la base après un arrêt ou une reconstruction.
-`docker compose down --volumes` **supprime les données** : réserver cette commande
-à une remise à zéro volontaire. Les variables `POSTGRES_*` initialisent une base
-vide ; les modifier ne change pas les identifiants d'une base déjà créée.
-
-L'API attend que PostgreSQL soit disponible au démarrage. Compose contrôle ensuite
-la santé des trois services ; ces contrôles ne redémarrent pas automatiquement un
-service devenu indisponible.
-
-Ce socle est destiné au développement local. Le serveur Vite sert au développement ;
-il ne constitue pas un hébergement de production. Les dépendances
-Python sont verrouillées avec leurs dépendances transitives et hashes dans les
-fichiers backend/requirements.txt et backend/requirements-dev.txt (Linux / Python 3.13).
-
-## API Documents
-
-L’API gère les **métadonnées et l’import de PDF**. L’extraction du texte par page est disponible.
-L’indexation Gemini, la recherche sémantique et les réponses sourcées sont disponibles.
-Les conversations persistées sont disponibles ; l’authentification reste hors périmètre.
-
-| Méthode | Chemin | Résultat |
-| --- | --- | --- |
-| POST | `/documents` | Créer les métadonnées, HTTP 201 et Location |
-| POST | `/documents/upload` | Importer un PDF en multipart, HTTP 201 et Location |
-| POST | `/documents/{id}/extract` | Extraire le texte, HTTP 200 |
-| POST | `/documents/{id}/chunk` | Découper le texte extrait, HTTP 200 |
-| POST | `/documents/{id}/index` | Calculer et stocker les embeddings, HTTP 200 |
-| POST | `/documents/{id}/search` | Rechercher les passages du document, HTTP 200 |
-| POST | `/documents/{id}/ask` | Obtenir une réponse sourcée ou une abstention, HTTP 200 |
-| GET | `/documents/{id}/chunks?limit=20&offset=0` | Lire les chunks et leurs positions |
-| GET | `/documents/{id}/pages?limit=20&offset=0` | Lire les pages extraites |
-| GET | `/documents?limit=20&offset=0` | Liste paginée, HTTP 200 |
-| GET | `/documents/{id}` | Consulter, HTTP 200 ou 404 |
-| DELETE | `/documents/{id}` | Supprimer, HTTP 204 ou 404 |
-
-```sh
-curl --fail http://localhost:8000/documents \
-  -H 'Content-Type: application/json' \
-  -d '{"title":"Contrat de démonstration","filename":"contrat.pdf"}'
-```
-
-Le titre accepte 1 à 200 caractères, le nom de fichier 1 à 255 après suppression
-des espaces aux extrémités. Les champs supplémentaires sont refusés. Les UUID et
-paramètres invalides donnent HTTP 422. La pagination est limitée à 100 éléments
-et ordonnée par date de création, puis UUID. `filename` est une métadonnée, jamais
-un chemin utilisé pour lire ou écrire sur disque.
-
-## Tests et migrations
-
-`make test` construit une image avec pytest et lance un PostgreSQL distinct
-(`compose.test.yaml`), sans port publié, avec données temporaires en mémoire.
-La suite utilise de vraies requêtes SQL et vérifie le cycle HTTP, la validation,
-la pagination, le commit et l'annulation des transactions inachevées.
-Elle vérifie aussi l'alignement modèle/migration et un aller-retour des migrations.
-Les conteneurs de test sont retirés à la fin, même en cas d'échec.
-Pytest traite les avertissements comme des erreurs. Les contraintes temporaires
-de compatibilité sont expliquées dans backend/requirements.in et le guide J3.
-Ne pas lancer deux `make test` en parallèle : ils partagent le même projet de test.
-
-Les fixtures refusent de nettoyer une base autre que `document_intelligence_test`
-sur `db-test`. La base de développement n'est jamais visée par ces tests.
-
-Les migrations sont versionnées dans `backend/migrations/versions/`. La création des
-tables passe par Alembic, jamais par `create_all()` au démarrage de l'application.
-Après une nouvelle migration : `make migrate` (ou `make up`).
-
-Guide pédagogique : [lecture du socle Documents](docs/learning/01-documents-api.md).
-
-## Repères de lecture
-
-- `backend/Dockerfile` construit l'image Python et exécute l'API avec un utilisateur non root.
-- `compose.yaml` assemble les services, le réseau, les contrôles de santé et le volume.
-- `backend/app/main.py` fournit le serveur minimal nécessaire pour vérifier le démarrage.
-
-À la relecture : pourquoi l'API utilise-t-elle `db` pour joindre PostgreSQL ?
-Quelle différence entre le montage du code et le volume de données ?
-Pourquoi attendre un service sain plutôt que simplement un conteneur démarré ?
-
-Références : [Docker avec FastAPI](https://fastapi.tiangolo.com/deployment/docker/)
-et [image officielle PostgreSQL](https://hub.docker.com/_/postgres).
-
-## Qualité et dépendances
-
-```sh
-make format        # Formater et trier les imports
-make lint          # Contrôler le lint et le format
-make typecheck     # Mypy strict sur backend/app/
-make quality       # Lint + types + tests
-make lock          # Résoudre après modification des .in
-make lock LOCK_ARGS=--upgrade # Actualiser les versions compatibles
-```
-
-Ces commandes utilisent Docker ; les outils n'ont pas besoin d'être installés
-sur la machine hôte. Les fichiers `.in` décrivent les dépendances directes et
-les `.txt` sont générés par pip-tools. Versionner les deux après validation.
-Le lock de développement est contraint par celui du runtime.
-
-Après modification des dépendances : `make lock`, `make quality`, puis `make up`.
-Les contrôles statiques ne nécessitent pas de base de données. `make check` reste
-la validation de Compose ; `make quality` contrôle le code et son comportement.
-
-Voir [le guide J3](docs/learning/02-tooling.md) pour les limites, la maintenance des
-contraintes de compatibilité et les comparaisons PHP/TypeScript.
-
-## Importer un PDF
-
-```sh
-make up
-curl --fail http://localhost:8000/documents/upload \
-  -F 'title=Contrat de démonstration' \
-  -F 'file=@/chemin/vers/contrat.pdf;type=application/pdf'
-```
-
-Remplacer le chemin par un PDF local. Le formulaire est aussi disponible dans
-Swagger. Limite : **10 Mio par fichier**. La réponse fournit `status=UPLOADED`
-et `size_bytes`. Les créations JSON et anciennes lignes sont `METADATA_ONLY`.
-
-Fichier vide : 400 ; extension/signature non PDF : 415 ; taille excessive : 413 ;
-métadonnées invalides : 422 ; stockage indisponible : 503. L’en-tête `%PDF-` est
-vérifié à l’upload ; le parsing strict est effectué à l’étape d’extraction.
-La taille est contrôlée après parsing multipart, pas avant réception réseau.
-
-Les fichiers sont nommés `UUID.pdf` dans `/data/documents`, persisté par le volume
-`document_files`. Le nom original n’est jamais utilisé comme chemin serveur.
-Une suppression interrompue reste `DELETING` et peut être relancée avec DELETE.
-Un crash pendant l’upload peut laisser un fichier orphelin : les limites de cette
-coordination SQL/disque sont détaillées dans [le guide J4](docs/learning/03-upload.md).
-
-`docker compose down` conserve base et fichiers. `docker compose down --volumes`
-**supprime les deux**. Les tests utilisent uniquement des répertoires temporaires.
-
-
-## Extraire le texte d'un PDF
-
-Après l'upload, utiliser l'UUID retourné :
-
-```sh
-curl --fail -X POST http://localhost:8000/documents/UUID/extract
-curl --fail 'http://localhost:8000/documents/UUID/pages?limit=20&offset=0'
-```
-
-La requête attend l'extraction. Le statut devient `EXTRACTED`, puis les pages
-numérotées à partir de 1 sont consultables. Une relance réussie ne duplique pas les
-pages ; supprimer le document supprime également ses pages en base.
-
-Un PDF illisible, chiffré, sans texte extractible ou dépassant les limites de
-traitement retourne 422 avec un code d'erreur, mémorisé dans `extraction_error`
-et le statut `FAILED`. Une relance est possible. Limites actuelles : 200 pages et
-2 millions de caractères normalisés. Elles ne bornent pas la mémoire du parseur.
-Pas d'OCR, de traitement en arrière-plan ni d'indexation à cette étape.
-Les PDF locaux de confiance avec texte constituent le périmètre de démonstration.
-
-Voir [le guide J5](docs/learning/04-extraction.md) pour les transactions, la
-normalisation, les limites de mise en page et les questions de compréhension.
-
-
-## Découper en passages
-
-Après extraction, appeler `POST /documents/{id}/chunk`, puis consulter
-`GET /documents/{id}/chunks?limit=20&offset=0`. Le statut devient `CHUNKED`.
-Le découpage utilise 1000 caractères avec 200 de recouvrement, page par page.
-Chaque passage conserve un UUID, son ordre, sa page et ses offsets dans le texte
-normalisé. Une relance conserve le résultat existant ; supprimer le document
-supprime aussi ses chunks. Un document non extrait retourne 409.
-
-Ce découpage simple peut couper les phrases et ne constitue pas encore une
-indexation vectorielle. Voir [le guide J6](docs/learning/05-chunking.md) pour
-l'algorithme, les limites et les garanties transactionnelles.
-
-
-## Indexer avec Gemini (J7)
-
-Configurer `GEMINI_API_KEY` dans `.env` local, avec une clé de projet utilisant
-l'offre gratuite, puis `make up`. Aucune clé dans Git. Le texte des chunks est
-transmis à Google ; aucun modèle n'est installé localement. L'application ne peut
-pas détecter si la facturation a été activée sur le compte associé à une clé.
-
-Après upload/extract/chunk, appeler `POST /documents/{id}/index` : le statut devient
-`INDEXED`, avec `embedding_model=gemini-embedding-2` et `embedding_dimensions=768`.
-PostgreSQL 17 embarque désormais pgvector, en conservant le volume de données.
-Une relance garde l'index existant ; `?force=true` demande un recalcul explicite.
-La réindexation conserve l'ancien résultat si le calcul ou la transaction échoue.
-
-Maximum 100 chunks par indexation ; un appel Gemini par chunk, sans retry automatique.
-Quota atteint : 429 ; clé absente/erreur fournisseur : 503 ; réponse invalide : 502.
-Les tests automatiques simulent Gemini et utilisent une vraie base pgvector.
-Les offres gratuites sont soumises aux quotas du fournisseur ; aucun fallback payant
-n'est implémenté.
-
-Voir [le guide J7](docs/learning/06-embeddings.md) pour le protocole, les transactions,
-la reprise, les limites et les questions de compréhension.
-
-
-## Rechercher dans un document (J8)
-
-Après indexation, appeler `POST /documents/{id}/search` avec :
-
-```json
-{"question": "Quelle est la durée du préavis ?", "top_k": 5}
-```
-
-Un seul appel Gemini encode la question. PostgreSQL/pgvector classe ensuite les
-chunks du document sélectionné par distance cosinus. La réponse est une liste
-`[{"chunk": {...}, "score": 0.72}]` avec texte, page et offsets. Le score sert au
-classement ; ce n'est pas une probabilité de bonne réponse. Cette route ne génère
-pas de texte de réponse et une question hors sujet peut retourner des passages.
-
-Question : 1–2000 caractères après nettoyage ; `top_k` : entier 1–10, défaut 5.
-Un document non indexé ou incompatible renvoie 409, absent 404. Les erreurs Gemini
-conservent les mêmes codes que l'indexation. La recherche ne modifie pas l'index.
-
-Voir [le guide J8](docs/learning/07-semantic-search.md) pour le flux, les scores,
-la concurrence et les questions de compréhension.
-
-
-## Poser une question avec sources (J9)
-
-Appeler `POST /documents/{id}/ask` avec `{"question": "Quelle est la durée du préavis ?"}`.
-Le service réutilise la recherche J8, transmet au plus cinq passages complets
-(5000 caractères de texte) à `gemini-3.1-flash-lite`, puis retourne :
-
-```json
-{"answer": "Le préavis est de trois mois.", "abstained": false, "sources": [{"id": 1, "chunk": {"...": "..."}}]}
-```
-
-Cet exemple abrège le chunk, qui contient UUID, document, page, offsets et texte.
-Les références sont contrôlées puis reconstruites par le backend. Si l'information
-manque dans les passages, `abstained` vaut `true` et `sources` est vide.
-Une source valide ne garantit pas que chaque affirmation soit correcte.
-
-La même clé `GEMINI_API_KEY` est utilisée, sur le projet gratuit choisi. Les quotas
-restent applicables ; seuls les 503 de génération sont réessayés dans les limites
-décrites en J14, sans fallback payant. Une sortie invalide, tronquée
-ou bloquée donne 502 ; quota 429 ; fournisseur/réseau indisponible 503. Cette route directe
-ne persiste pas l’échange ; utiliser les conversations J12 pour le conserver.
-L’évaluation sur corpus est décrite en J10.
-
-Voir [le guide J9](docs/learning/08-grounded-answers.md) pour le flux RAG, le prompt,
-les sorties structurées et les limites des citations.
-
-
-## Évaluer le RAG (J10)
-
-Après `make up`, lancer `make evaluate` pour importer trois PDF fictifs et poser
-dix questions au véritable Gemini. Cette commande consomme le quota du projet
-configuré ; elle ne fait pas partie de `make quality`.
-
-Le corpus versionné se trouve dans `backend/evaluation/corpus.json`. Chaque exécution
-écrit un rapport local `reports/rag-*.json` (ignoré par Git), puis supprime uniquement
-les documents créés pour cet essai. Les erreurs de nettoyage sont consignées.
-Un quota atteint arrête la campagne sans retry automatique.
-
-Les contrôles du runner vérifient les sources et les pages attendues. La justesse
-des réponses exige une relecture du texte avec les attendus : une commande réussie
-ne constitue pas, à elle seule, une validation sémantique.
-
-Voir [le guide J10](docs/learning/09-rag-evaluation.md) pour les critères et limites.
-
-[Bilan J10 du 21 septembre 2026](docs/evaluation/2026-09-21-rag-baseline.md) :
-huit réponses factuelles soutenues et deux abstentions sur le corpus synthétique.
-Ces résultats ne garantissent pas la qualité sur tous les documents.
-
-## Interface Documents (J11)
-
-Ouvrir http://localhost:5173 après `make up`. Importer un PDF, sélectionner un
-élément de la bibliothèque, puis lancer successivement l’extraction, le découpage
-et l’indexation. La bibliothèque est paginée par 20 documents. `Actualiser` recharge
-la page et remet la sélection à zéro. Les opérations affichent leur attente et
-leurs erreurs ; aucune relance ni indexation automatique n’est effectuée.
-
-L’indexation transmet le texte des passages à Gemini et consomme le quota du compte.
-La clé reste exclusivement côté API. Le navigateur appelle `/api/documents` ;
-le proxy de développement Vite relaie vers `http://api:8000/documents` sur le réseau
-Docker, sans configuration CORS supplémentaire.
-
-Les sources React et `index.html` sont montés pour le rechargement à chaud.
-Après modification de la configuration ou des dépendances, relancer `make up`.
-`package.json` décrit les contraintes npm ; `package-lock.json` verrouille l’arbre
-installé par `npm ci`. Aucun Node.js local n’est nécessaire.
-
-Le panneau Conversations permet maintenant de poser des questions et de consulter
-les réponses et extraits sources enregistrés. L’ouverture du PDF à la page citée
-est disponible via « Voir la page N ». Voir [le guide J11](docs/learning/10-react-documents.md).
-
-
-## Conversations persistées (J12)
-
-Après `make up` (migration incluse), sélectionner un document indexé dans React,
-cliquer sur « Nouvelle conversation », puis envoyer une question. Les conversations
-et échanges se retrouvent après rechargement en sélectionnant à nouveau le document
-et la conversation. Les listes sont paginées.
-
-| Méthode | Chemin | Résultat |
-| --- | --- | --- |
-| POST | `/conversations` | Créer avec `{ "document_id": "UUID" }` ; document indexé requis |
-| GET | `/conversations?document_id=UUID` | Lister, plus récentes d’abord (`limit`/`offset`) |
-| GET | `/conversations/{id}` | Métadonnées d’une conversation |
-| GET | `/conversations/{id}/messages` | Échanges par séquence croissante (`limit`/`offset`) |
-| POST | `/conversations/{id}/messages` | Poser `{ "question": "Quel délai ?" }` et enregistrer l’échange complet |
-
-Un échange contient la question, la réponse, l’indication d’abstention et un
-instantané des sources utilisées (page, extrait et positions). Gemini est appelé
-hors transaction ; l’écriture finale est atomique. Les erreurs fournisseur ne
-créent pas d’échange incomplet. Une perte de réponse HTTP après commit reste
-possible : recharger l’historique avant de renvoyer, sans retry automatique.
-
-Chaque question est indépendante : **l’historique stocké n’est pas transmis au
-LLM**. Les relances implicites ne sont pas encore prises en charge. Supprimer un
-document supprime également ses conversations et leurs échanges. L’affichage des
-sources est textuel ; la navigation dans le PDF est disponible depuis chaque source.
-
-Voir [le guide J12](docs/learning/11-conversations.md) pour les transactions,
-l’historique, les instantanés JSONB et les questions de compréhension.
-
-
-## Consultation des sources (J13)
-
-Déplier les sources d’une réponse, puis cliquer sur « Voir la page N ». La vue
-texte affiche la page extraite et surligne le passage correspondant à la citation.
-Si la page a changé, un message remplace le surlignage pour éviter une correspondance
-erronée. « Ouvrir le PDF à cette page » ouvre le fichier original dans un nouvel
-onglet ; le positionnement dépend du lecteur PDF du navigateur.
-
-- `GET /documents/{id}/pages/{page_number}` : page extraite précise.
-- `GET /documents/{id}/file` : PDF original inline, avec prise en charge de Range.
-
-`make smoke-install` vérifie une installation vide et isolée (migrations, pipeline
-sans Gemini, fichiers, erreurs et proxy React). Aucun port publié ni clé Gemini ;
-seuls les volumes de ce projet de test sont supprimés à la sortie. Ne pas lancer
-plusieurs exemplaires de cette commande simultanément.
-
-Voir [le guide J13](docs/learning/12-source-navigation.md) pour les offsets Unicode,
-les réponses fichier, les erreurs et les limites du transfert concurrent.
-
-## Reprise après saturation du modèle (J14)
-
-La génération réessaie uniquement les réponses Gemini HTTP 503 : trois appels au
-maximum, pauses de 1 puis 2 secondes et budget de relance de 30 secondes. Les
-embeddings et la recherche ne sont pas rejoués. Aucun retry sur un quota dépassé,
-un timeout ou une réponse invalide ; aucun changement automatique de modèle.
-Les timeouts sont des limites réseau par phase, pas une garantie absolue de durée.
-
-Après échec persistant, l’interface indique que le modèle est temporairement
-indisponible et conserve la question. La reprise ne garantit pas la disponibilité
-de Gemini. Les logs ne contiennent que modèle, tentative et statut HTTP.
-Voir [le guide J14](docs/learning/13-generation-resilience.md).
+Les tests backend utilisent PostgreSQL/pgvector réel et simulent Gemini. Les tests
+React utilisent Vitest et Testing Library avec appels HTTP simulés. **Il n’y a pas
+de suite E2E automatisée dans un navigateur.**
+
+`make quality` et `make smoke-install` ne nécessitent pas de clé Gemini.
+Ne pas lancer plusieurs instances d’une même commande de test en parallèle :
+elles partagent le nom de leur projet Docker isolé.
+
+`make evaluate` nécessite une application déjà démarrée avec `make up`.
+L’évaluation réelle utilise dix questions sur des PDF synthétiques et produit un
+rapport local. Le [bilan du corpus](docs/evaluation/2026-09-21-rag-baseline.md)
+distingue les contrôles automatiques de la relecture humaine. Une citation valide
+ne garantit pas une interprétation correcte du texte.
+
+## Commandes courantes
+
+| Commande | Usage |
+| --- | --- |
+| `make up` | Construire, démarrer et appliquer les migrations |
+| `make down` | Arrêter en conservant les données |
+| `make health` | Vérifier l’API locale et PostgreSQL, pas Gemini |
+| `make logs SERVICE=api` | Suivre les logs du backend |
+| `make format` / `make frontend-format` | Formater Python / React |
+| `make test` / `make frontend-check` | Vérifier séparément backend / frontend |
+| `make help` | Afficher toutes les commandes |
+
+Après modification de `.env`, des dépendances ou de la configuration, relancer
+`make up`. `make restart` ne reconstruit pas les images et ne recharge pas les
+variables de configuration. **`docker compose down --volumes` supprime la base et
+les fichiers.** Voir [configuration et persistance](docs/development.md).
+
+## Périmètre et limites
+
+- Application de développement locale, sans authentification ni déploiement production.
+- PDF avec texte extractible uniquement : pas d’OCR. Taille maximale : 10 Mio.
+- Traitement synchrone ; extraction limitée à 200 pages et indexation à 100 chunks.
+- Découpage par caractères et contexte borné : certains passages utiles peuvent être omis.
+- Pas de comparaison multi-document, de mémoire conversationnelle, de tool calling ou d’agent.
+- Pas de clé d’idempotence : après une coupure réseau, relire l’historique avant de renvoyer.
+- Disponibilité et quotas Gemini externes ; les reprises ne garantissent pas un succès.
+
+## À propos
+
+Projet développé avec l’aide de l’IA, en privilégiant la compréhension du code,
+la séparation des responsabilités et des tests sur les comportements critiques.
+Le [programme de formation](document-intelligence-training.md) et les
+[guides de lecture](docs/README.md) détaillent les choix et leurs limites.
+Les retours sur l’architecture, les tests et les pratiques Python sont les bienvenus.
