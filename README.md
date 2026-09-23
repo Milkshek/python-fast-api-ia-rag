@@ -311,7 +311,8 @@ manque dans les passages, `abstained` vaut `true` et `sources` est vide.
 Une source valide ne garantit pas que chaque affirmation soit correcte.
 
 La même clé `GEMINI_API_KEY` est utilisée, sur le projet gratuit choisi. Les quotas
-restent applicables ; aucun retry ni fallback payant. Une sortie invalide, tronquée
+restent applicables ; seuls les 503 de génération sont réessayés dans les limites
+décrites en J14, sans fallback payant. Une sortie invalide, tronquée
 ou bloquée donne 502 ; quota 429 ; fournisseur/réseau indisponible 503. Aucune question
 ni réponse n'est encore persistée. L'évaluation sur corpus sera l'étape J10.
 
@@ -411,3 +412,16 @@ plusieurs exemplaires de cette commande simultanément.
 
 Voir [le guide J13](docs/learning/12-source-navigation.md) pour les offsets Unicode,
 les réponses fichier, les erreurs et les limites du transfert concurrent.
+
+## Reprise après saturation du modèle (J14)
+
+La génération réessaie uniquement les réponses Gemini HTTP 503 : trois appels au
+maximum, pauses de 1 puis 2 secondes et budget de relance de 30 secondes. Les
+embeddings et la recherche ne sont pas rejoués. Aucun retry sur un quota dépassé,
+un timeout ou une réponse invalide ; aucun changement automatique de modèle.
+Les timeouts sont des limites réseau par phase, pas une garantie absolue de durée.
+
+Après échec persistant, l’interface indique que le modèle est temporairement
+indisponible et conserve la question. La reprise ne garantit pas la disponibilité
+de Gemini. Les logs ne contiennent que modèle, tentative et statut HTTP.
+Voir [le guide J14](docs/learning/13-generation-resilience.md).
